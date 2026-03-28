@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,17 +21,21 @@ import org.springframework.stereotype.Component;
  * AOP aspect that auto-records an {@link ActivityLog} entry whenever a service
  * method annotated with {@link Auditable} completes successfully.
  *
- * <p>Entity ID resolution strategy (in priority order):
- * <ol>
- *   <li>First {@link UUID} argument → used for UPDATE / DELETE / STATUS_CHANGE</li>
- *   <li>Return value's {@code getId()} method → used for CREATE operations
- *       where the ID is assigned by the database after {@code save()}</li>
- *   <li>{@code null} → logged without a logable_id (acceptable for batch ops)</li>
- * </ol>
+ * <h3>Snapshot strategy</h3>
+ * <ul>
+ *   <li><b>beforeState</b> – loaded via {@link BeforeStateLoader} <em>before</em>
+ *       {@code proceed()} is called, so it reflects the entity state prior to
+ *       the mutation.  Always {@code null} for {@code CREATE} actions.</li>
+ *   <li><b>afterState</b> – the serialised return value of the annotated method.
+ *       {@code void} methods produce a {@code null} after-state.</li>
+ * </ul>
  *
- * <p>Actor ID resolution: casts {@code auth.getPrincipal()} to {@link User}
- * and reads {@code user.getId()}.  Falls back gracefully to {@code null} if the
- * principal is not a {@link User} (e.g. anonymous, JWT-only paths).
+ * <h3>Entity ID resolution (in priority order)</h3>
+ * <ol>
+ *   <li>First {@link UUID} argument – used for UPDATE / DELETE / STATUS_CHANGE</li>
+ *   <li>Return value's {@code getId()} – used for CREATE where the DB assigns the ID</li>
+ *   <li>{@code null} – logged without a logable_id (acceptable for batch ops)</li>
+ * </ol>
  */
 @Slf4j
 @Aspect
@@ -41,16 +44,30 @@ import org.springframework.stereotype.Component;
 public class ActivityLoggingAspect {
 
     private final ActivityLogRepository activityLogRepository;
+    private final BeforeStateLoader beforeStateLoader;
     private final ObjectMapper objectMapper;
 
     @Around("@annotation(auditable)")
     public Object logActivity(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {
+
+        // ── 1. Capture BEFORE state ───────────────────────────────────────────
+        // For CREATE there is no existing entity to snapshot; skip the DB lookup.
+        Map<String, Object> beforeSnapshot = null;
+        if (!"CREATE".equals(auditable.action())) {
+            UUID preId = extractUuidFromArgs(joinPoint.getArgs());
+            if (preId != null) {
+                beforeSnapshot = beforeStateLoader.loadSnapshot(auditable.entityClass(), preId);
+            }
+        }
+
+        // ── 2. Execute the real service method ────────────────────────────────
         Object result = joinPoint.proceed();
 
+        // ── 3. Build and persist the log entry ────────────────────────────────
         try {
-            // For CREATE the entity UUID is in the return value; for UPDATE/DELETE it's the first arg
-            UUID entityId = resolveEntityId(joinPoint.getArgs(), result, auditable.action());
-            UUID actorId  = resolveActorId();
+            // For CREATE, the UUID comes from the saved entity's getId()
+            UUID entityId   = resolveEntityId(joinPoint.getArgs(), result);
+            UUID actorId    = resolveActorId();
             String userType = resolveUserType();
 
             Map<String, Object> afterSnapshot = toMap(result);
@@ -60,6 +77,7 @@ public class ActivityLoggingAspect {
                     .logableType(auditable.entityClass().getSimpleName())
                     .action(auditable.action())
                     .editedBy(actorId)
+                    .beforeState(beforeSnapshot)
                     .afterState(afterSnapshot)
                     .userType(userType)
                     .build();
@@ -79,21 +97,17 @@ public class ActivityLoggingAspect {
     // ── Helpers ─────────────────────────────────────────────────────────────
 
     /**
-     * For UPDATE / DELETE / STATUS_CHANGE: the first {@link UUID} in the argument
-     * list is the entity ID passed by the caller.
-     *
-     * For CREATE: the entity does not have an ID until after {@code save()}, so we
-     * extract it from the return value via reflection ({@code result.getId()}).
+     * Returns the first {@link UUID} found in {@code args} (covers UPDATE/DELETE
+     * where the entity ID is the first parameter), or falls back to extracting
+     * the ID from the return value via reflection (covers CREATE).
      */
-    private UUID resolveEntityId(Object[] args, Object result, String action) {
-        // Try arguments first (covers UPDATE / DELETE where UUID id is the first param)
-        for (Object arg : args) {
-            if (arg instanceof UUID uuid) {
-                return uuid;
-            }
+    private UUID resolveEntityId(Object[] args, Object result) {
+        // Primary: first UUID arg (UPDATE / DELETE / STATUS_CHANGE)
+        UUID fromArgs = extractUuidFromArgs(args);
+        if (fromArgs != null) {
+            return fromArgs;
         }
-
-        // For CREATE-style operations, extract the ID from the saved entity return value
+        // Fallback: entity returned by a CREATE method
         if (result != null) {
             try {
                 Method getId = result.getClass().getMethod("getId");
@@ -102,16 +116,25 @@ public class ActivityLoggingAspect {
                     return uuid;
                 }
             } catch (Exception ignored) {
-                // Return value has no getId() – that's fine (e.g. void or primitive)
+                // void return or entity without getId() — acceptable
             }
         }
+        return null;
+    }
 
+    /** Returns the first {@link UUID} found in the argument list, or {@code null}. */
+    private UUID extractUuidFromArgs(Object[] args) {
+        for (Object arg : args) {
+            if (arg instanceof UUID uuid) {
+                return uuid;
+            }
+        }
         return null;
     }
 
     /**
      * Extracts the actor's UUID by casting the Security principal to {@link User}.
-     * Falls back to {@code null} for anonymous or non-User principals.
+     * Returns {@code null} for anonymous or non-User principals.
      */
     private UUID resolveActorId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
