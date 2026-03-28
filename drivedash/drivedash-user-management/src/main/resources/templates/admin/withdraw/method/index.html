@@ -37,7 +37,7 @@
                         <span th:unless="${m.default}" class="text-muted">—</span>
                     </td>
                     <td>
-                        <a th:href="@{'/admin/withdraw/methods/' + ${m.id} + '/status'}?status=${!m.active}">
+                        <a th:href="@{|/admin/withdraw/methods/${m.id}/status|(status=${!m.active})}">
                             <span th:if="${m.active}" class="badge bg-success">Active</span>
                             <span th:unless="${m.active}" class="badge bg-secondary">Inactive</span>
                         </a>

@@ -37,7 +37,7 @@
                         <span th:if="${r.modules == null or r.modules.isEmpty()}" class="text-muted">All</span>
                     </td>
                     <td>
-                        <a th:href="@{'/admin/employees/roles/' + ${r.id} + '/status'}?status=${!r.active}">
+                        <a th:href="@{|/admin/employees/roles/${r.id}/status|(status=${!r.active})}">
                             <span th:if="${r.active}" class="badge bg-success">Active</span>
                             <span th:unless="${r.active}" class="badge bg-secondary">Inactive</span>
                         </a>
