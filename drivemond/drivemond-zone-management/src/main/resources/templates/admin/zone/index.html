@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Zone Setup')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ── Create Zone Form ──────────────────────────────────────────── -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2>Zone Setup</h2>
+    </div>
+
+    <form id="zone_form" th:action="@{/admin/zones}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Instructions -->
+                    <div class="col-lg-4 mb-4 mb-lg-0">
+                        <h5 class="text-primary mb-3">Instructions</h5>
+                        <p>Create zone by clicking on the map and connecting the dots together.</p>
+                        <p class="text-muted small">
+                            <strong>Drag icon:</strong> Use this to drag the map to find the proper area.<br/>
+                            <strong>Draw icon:</strong> Click to start pinning points on the map and connect them
+                            to draw a zone. Minimum 3 points required.
+                        </p>
+                    </div>
+
+                    <!-- Map + Name -->
+                    <div class="col-lg-8">
+                        <div class="mb-3">
+                            <label for="zone_name" class="form-label">Zone Name</label>
+                            <input type="text" class="form-control" name="name" id="zone_name"
+                                   th:value="${zoneRequest.name}"
+                                   placeholder="e.g. Downtown" required/>
+                        </div>
+
+                        <!-- hidden coordinates textarea -->
+                        <div class="d-none">
+                            <textarea name="coordinates" id="coordinates" rows="4" class="form-control" readonly></textarea>
+                        </div>
+
+                        <!-- Google Map canvas -->
+                        <div class="position-relative overflow-hidden rounded" style="height:400px;">
+                            <input id="pac-input" type="text" placeholder="Search location..."
+                                   class="form-control position-absolute"
+                                   style="top:10px;left:50%;transform:translateX(-50%);width:300px;z-index:5;"/>
+                            <div id="map-canvas" style="width:100%;height:100%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- ── Zone List ──────────────────────────────────────────────────── -->
+    <h2 class="mb-3">Zone List</h2>
+
+    <!-- Status filter tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link"
+               th:classappend="${status == 'all' or status == null} ? 'active'"
+               th:href="@{/admin/zones(status='all')}">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+               th:classappend="${status == 'active'} ? 'active'"
+               th:href="@{/admin/zones(status='active')}">Active</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link"
+               th:classappend="${status == 'inactive'} ? 'active'"
+               th:href="@{/admin/zones(status='inactive')}">Inactive</a>
+        </li>
+    </ul>
+
+    <div class="card">
+        <div class="card-body">
+
+            <!-- Search + actions bar -->
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <form th:action="@{/admin/zones}" method="get" class="d-flex gap-2">
+                    <input type="hidden" name="status" th:value="${status}"/>
+                    <input type="text" class="form-control" name="search" id="search"
+                           th:value="${search}" placeholder="Search by zone name..."/>
+                    <button type="submit" class="btn btn-outline-primary">Search</button>
+                </form>
+
+                <div class="d-flex gap-2">
+                    <a th:href="@{/admin/zones}" class="btn btn-outline-secondary btn-sm"
+                       title="Refresh"><i class="bi bi-arrow-repeat"></i></a>
+                    <a sec:authorize="hasRole('SUPER_ADMIN')"
+                       th:href="@{/admin/zones/trashed}"
+                       class="btn btn-outline-warning btn-sm" title="Trashed zones">
+                        <i class="bi bi-recycle"></i> Trashed
+                    </a>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mb-2">
+                <span class="text-muted">Total Zones:</span>
+                <strong class="text-primary" th:text="${zones.totalElements}">0</strong>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Zone Name</th>
+                        <th class="text-center">Trip Volume</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="zone, iter : ${zones.content}" th:id="'row-' + ${zone.id}">
+                        <td th:text="${zones.number * zones.size + iter.count}"></td>
+                        <td th:text="${zone.name}"></td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">Low</span>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox"
+                                       th:checked="${zone.active}"
+                                       th:data-href="@{/admin/zones/status(id=${zone.id},status=${!zone.active},currentStatus=${status})}"
+                                       onclick="window.location=this.dataset.href"/>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:href="@{'/admin/zones/' + ${zone.id} + '/edit'}"
+                                   class="btn btn-sm btn-outline-info" title="Edit">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:action="@{'/admin/zones/' + ${zone.id}}" method="post" class="d-inline">
+                                    <input type="hidden" name="_method" value="DELETE"/>
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this zone?')" title="Delete">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${zones.content.isEmpty()}">
+                        <td colspan="5" class="text-center text-muted py-4">No zones found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${zones.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${zones.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/zones(status=${status},search=${search},page=${zones.number - 1})}">
+                            &laquo;
+                        </a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, zones.totalPages - 1)}"
+                        th:classappend="${i == zones.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/zones(status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${zones.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/zones(status=${status},search=${search},page=${zones.number + 1})}">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</main>
+
+<!-- Google Maps + zone drawing script -->
+<th:block th:if="${mapApiKey != null and !#strings.isEmpty(mapApiKey)}">
+    <script th:src="@{'https://maps.googleapis.com/maps/api/js?key=' + ${mapApiKey} + '&libraries=drawing,places&v=3.50'}"></script>
+</th:block>
+<script th:inline="javascript">
+    "use strict";
+
+    const STATUS_PARAM = /*[[${status}]]*/ 'all';
+
+    let map, drawingManager, lastPolygon = null, polygons = [];
+
+    function autoGrow() {
+        let el = document.getElementById("coordinates");
+        if (el) { el.style.height = "5px"; el.style.height = (el.scrollHeight) + "px"; }
+    }
+
+    function addResetControl(mapObj) {
+        const div = document.createElement("div");
+        const btn = document.createElement("div");
+        btn.style.cssText = "background:#fff;border:2px solid #fff;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;margin:8px;padding:2px 6px;font-size:13px;";
+        btn.innerHTML = "✕ Reset";
+        div.appendChild(btn);
+        btn.addEventListener("click", () => {
+            if (lastPolygon) { lastPolygon.setMap(null); lastPolygon = null; }
+            document.getElementById("coordinates").value = "";
+        });
+        mapObj.controls[google.maps.ControlPosition.TOP_RIGHT].push(div);
+    }
+
+    function initialize() {
+        const center = { lat: 23.757989, lng: 90.360587 };
+        const opts = { zoom: 10, center: center, mapTypeId: google.maps.MapTypeId.ROADMAP };
+        map = new google.maps.Map(document.getElementById("map-canvas"), opts);
+
+        drawingManager = new google.maps.drawing.DrawingManager({
+            drawingMode: google.maps.drawing.OverlayType.POLYGON,
+            drawingControl: true,
+            drawingControlOptions: {
+                position: google.maps.ControlPosition.TOP_CENTER,
+                drawingModes: [google.maps.drawing.OverlayType.POLYGON]
+            },
+            polygonOptions: { editable: true }
+        });
+        drawingManager.setMap(map);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                map.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+            });
+        }
+
+        google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
+            if (lastPolygon) { lastPolygon.setMap(null); }
+            document.getElementById("coordinates").value = event.overlay.getPath().getArray().toString();
+            lastPolygon = event.overlay;
+            autoGrow();
+        });
+
+        addResetControl(map);
+
+        const input = document.getElementById("pac-input");
+        const searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+        map.addListener("bounds_changed", () => searchBox.setBounds(map.getBounds()));
+
+        let markers = [];
+        searchBox.addListener("places_changed", () => {
+            const places = searchBox.getPlaces();
+            if (!places || places.length === 0) return;
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+            const bounds = new google.maps.LatLngBounds();
+            places.forEach(place => {
+                if (!place.geometry) return;
+                markers.push(new google.maps.Marker({ map, title: place.name, position: place.geometry.location }));
+                place.geometry.viewport ? bounds.union(place.geometry.viewport) : bounds.extend(place.geometry.location);
+            });
+            map.fitBounds(bounds);
+        });
+
+        loadAllZones();
+    }
+
+    function loadAllZones() {
+        fetch('/admin/zones/get-zones?status=' + STATUS_PARAM)
+            .then(r => r.json())
+            .then(data => {
+                polygons.forEach(p => p.setMap(null));
+                polygons = [];
+                data.forEach(coords => {
+                    const poly = new google.maps.Polygon({
+                        paths: coords,
+                        strokeColor: "#FF0000", strokeOpacity: 0.8, strokeWeight: 2,
+                        fillColor: "#FF0000", fillOpacity: 0.1
+                    });
+                    poly.setMap(map);
+                    polygons.push(poly);
+                });
+            });
+    }
+
+    document.getElementById("zone_form").addEventListener("submit", function (e) {
+        if (!document.getElementById("coordinates").value) {
+            alert("Please draw the zone on the map before submitting.");
+            e.preventDefault();
+        }
+    });
+
+    window.addEventListener("load", function () {
+        if (typeof google !== "undefined") { initialize(); }
+    });
+</script>
+
+</body>
+</html>

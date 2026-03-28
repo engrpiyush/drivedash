@@ -1,0 +1,126 @@
+spring:
+  application:
+    name: drivemond
+
+  # ── DataSource ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_DATABASE:drivemond}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8&tinyInt1isBit=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # ── JPA / Hibernate ─────────────────────────────────────────────────────────
+  jpa:
+    hibernate:
+      ddl-auto: validate           # Flyway owns the schema; Hibernate only validates
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        default_batch_fetch_size: 50
+        type:
+          preferred_boolean_jdbc_type: TINYINT
+          preferred_uuid_jdbc_type: CHAR
+
+  # ── Flyway ───────────────────────────────────────────────────────────────────
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # ── Thymeleaf ────────────────────────────────────────────────────────────────
+  thymeleaf:
+    cache: false                   # Set to true in production
+    encoding: UTF-8
+    mode: HTML
+
+  # ── Mail ─────────────────────────────────────────────────────────────────────
+  mail:
+    host: ${MAIL_HOST:smtp.mailtrap.io}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  # ── HiddenHttpMethodFilter (enables PUT/DELETE via _method param) ────────────
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+  # ── File uploads ─────────────────────────────────────────────────────────────
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+  # ── Session ──────────────────────────────────────────────────────────────────
+  session:
+    timeout: 120m
+
+# ── Server ───────────────────────────────────────────────────────────────────
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# ── App-specific properties ──────────────────────────────────────────────────
+app:
+  storage:
+    base-dir: ${STORAGE_BASE_DIR:uploads}
+  jwt:
+    secret: ${JWT_SECRET:NDcS*Z7ykRtcDqZuKzPtC^BnvNx^ggBw}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}       # 24 hours
+    refresh-expiration-ms: ${JWT_REFRESH_MS:604800000} # 7 days
+  firebase:
+    credentials-file: ${FIREBASE_CREDENTIALS_FILE:}
+  google:
+    map-api-key: ${GOOGLE_MAP_API_KEY:}
+  pusher:
+    app-id: ${PUSHER_APP_ID:}
+    key: ${PUSHER_APP_KEY:}
+    secret: ${PUSHER_APP_SECRET:}
+    cluster: ${PUSHER_APP_CLUSTER:mt1}
+
+# ── SpringDoc / Swagger UI ────────────────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+logging:
+  level:
+    com.drivemond: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: INFO
+
+---
+# ── Production profile ───────────────────────────────────────────────────────
+spring:
+  config:
+    activate:
+      on-profile: prod
+  thymeleaf:
+    cache: true
+  jpa:
+    show-sql: false
+logging:
+  level:
+    com.drivemond: INFO
+    org.springframework.security: WARN

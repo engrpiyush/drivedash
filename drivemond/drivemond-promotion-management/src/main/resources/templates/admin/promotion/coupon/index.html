@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Coupons')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Coupon Setup</h2>
+        <div class="d-flex gap-2">
+            <a th:href="@{/admin/promotion/coupons/create}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg"></i> Add Coupon
+            </a>
+            <a sec:authorize="hasRole('SUPER_ADMIN')"
+               th:href="@{/admin/promotion/coupons/trashed}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-recycle"></i> Trashed
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="bi bi-ticket-perforated fs-4 text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Active Coupons</div>
+                        <div class="fs-5 fw-bold" th:text="${cards.totalActive}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-danger bg-opacity-10 p-3">
+                        <i class="bi bi-ticket-perforated-fill fs-4 text-danger"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Inactive Coupons</div>
+                        <div class="fs-5 fw-bold" th:text="${cards.totalInactive}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="bi bi-currency-dollar fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Discount Given</div>
+                        <div class="fs-5 fw-bold" th:text="${#numbers.formatDecimal(cards.totalCouponAmount, 1, 2)}">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                        <i class="bi bi-person-check fs-4 text-info"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Times Used</div>
+                        <div class="fs-5 fw-bold" th:text="${#numbers.formatDecimal(cards.totalUsed, 1, 0)}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'all'} ? 'active'"
+               th:href="@{/admin/promotion/coupons(status='all')}">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'active'} ? 'active'"
+               th:href="@{/admin/promotion/coupons(status='active')}">Active</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'inactive'} ? 'active'"
+               th:href="@{/admin/promotion/coupons(status='inactive')}">Inactive</a>
+        </li>
+    </ul>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/admin/promotion/coupons}" method="get" class="d-flex gap-2 mb-3">
+                <input type="hidden" name="status" th:value="${status}"/>
+                <input type="text" class="form-control" name="search" th:value="${search}"
+                       placeholder="Search by name or code..."/>
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">
+                    Total: <strong class="text-primary" th:text="${coupons.totalElements}">0</strong>
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Discount</th>
+                        <th>Used / Limit</th>
+                        <th>Validity</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c, iter : ${coupons.content}">
+                        <td th:text="${coupons.number * coupons.size + iter.count}"></td>
+                        <td>
+                            <div th:text="${c.name}"></div>
+                            <div class="text-muted small" th:text="${c.description}"></div>
+                        </td>
+                        <td><code th:text="${c.couponCode}"></code></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${c.couponType == 'first_order'} ? 'bg-warning text-dark' : 'bg-secondary'"
+                                  th:text="${c.couponType == 'first_order' ? 'First Order' : 'Default'}"></span>
+                        </td>
+                        <td>
+                            <span th:if="${c.amountType == 'percentage'}"
+                                  th:text="${c.coupon + '%'}"></span>
+                            <span th:unless="${c.amountType == 'percentage'}"
+                                  th:text="${#numbers.formatDecimal(c.coupon, 1, 2)}"></span>
+                        </td>
+                        <td th:text="${#numbers.formatDecimal(c.totalUsed, 1, 0) + ' / ' + (c.limit ?: '∞')}"></td>
+                        <td>
+                            <div class="small" th:if="${c.startDate}"
+                                 th:text="${#temporals.format(c.startDate, 'dd MMM yyyy')}"></div>
+                            <div class="small text-muted" th:if="${c.endDate}"
+                                 th:text="'→ ' + ${#temporals.format(c.endDate, 'dd MMM yyyy')}"></div>
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox"
+                                       th:checked="${c.isActive}"
+                                       th:data-href="@{/admin/promotion/coupons/status(id=${c.id},active=${!c.isActive},status=${status})}"
+                                       onclick="window.location=this.dataset.href"/>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:href="@{'/admin/promotion/coupons/' + ${c.id} + '/edit'}"
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:action="@{'/admin/promotion/coupons/' + ${c.id} + '/delete'}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this coupon?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${coupons.content.isEmpty()}">
+                        <td colspan="9" class="text-center text-muted py-4">No coupons found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav th:if="${coupons.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${coupons.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/promotion/coupons(status=${status},search=${search},page=${coupons.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, coupons.totalPages - 1)}"
+                        th:classappend="${i == coupons.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/promotion/coupons(status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${coupons.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/promotion/coupons(status=${status},search=${search},page=${coupons.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+</body>
+</html>

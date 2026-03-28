@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Payment Gateways')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Payment Gateways</h2>
+            <p class="text-muted small mb-0">Configure and enable the payment gateways available to your users.</p>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Stats row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="bi bi-check-circle fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Active Gateways</div>
+                        <div class="fs-5 fw-bold" th:text="${activeCount}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="bi bi-grid fs-4 text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Total Supported</div>
+                        <div class="fs-5 fw-bold" th:text="${totalCount}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                        <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small">Payment Requests</div>
+                        <div class="fs-5 fw-bold" th:text="${pendingPayments}">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gateway grid -->
+    <div class="row g-3">
+        <div class="col-md-4" th:each="gw : ${gateways}">
+            <div class="card h-100 border-0 shadow-sm"
+                 th:classappend="${gw.active} ? '' : 'opacity-75'">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-light p-2">
+                                <i class="bi fs-5 text-secondary"
+                                   th:classappend="${gw.iconClass}"></i>
+                            </div>
+                            <h6 class="mb-0" th:text="${gw.title}">Gateway</h6>
+                        </div>
+                        <!-- Status badge -->
+                        <span class="badge"
+                              th:classappend="${gw.active} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${gw.active} ? 'Active' : 'Inactive'">Inactive</span>
+                    </div>
+
+                    <!-- Mode badge -->
+                    <div class="mb-3">
+                        <span class="badge"
+                              th:classappend="${gw.liveMode} ? 'bg-danger' : 'bg-info text-dark'"
+                              th:text="${gw.liveMode} ? 'Live Mode' : 'Test Mode'">Test Mode</span>
+                        <span class="badge bg-light text-dark ms-1"
+                              th:text="${gw.credentialFields.size()} + ' fields'">0 fields</span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/admin/business/configuration/payment-gateways/{slug}(slug=${gw.slug})}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-gear me-1"></i>Configure
+                        </a>
+                        <form th:action="@{/admin/business/configuration/payment-gateways/{slug}/toggle(slug=${gw.slug})}"
+                              method="post" class="d-inline">
+                            <button type="submit"
+                                    class="btn btn-sm"
+                                    th:classappend="${gw.active} ? 'btn-outline-warning' : 'btn-outline-success'">
+                                <i class="bi me-1"
+                                   th:classappend="${gw.active} ? 'bi-pause-circle' : 'bi-play-circle'"></i>
+                                <span th:text="${gw.active} ? 'Disable' : 'Enable'">Enable</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+</body>
+</html>

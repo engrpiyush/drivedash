@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/install :: layout('Welcome', ~{::section})}">
+<body>
+<section>
+<!-- Step indicator -->
+<div class="d-flex align-items-center gap-2 mb-4 step-indicator">
+    <div class="step active">1</div><div class="flex-fill" style="height:2px;background:#dee2e6"></div>
+    <div class="step pending">2</div><div class="flex-fill" style="height:2px;background:#dee2e6"></div>
+    <div class="step pending">3</div>
+</div>
+
+<h5 class="fw-bold mb-1">Before You Begin</h5>
+<p class="text-muted mb-4">Please have the following ready before continuing:</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6">
+        <div class="d-flex gap-3 align-items-start p-3 bg-light rounded">
+            <i class="bi bi-database fs-4 text-primary"></i>
+            <div><div class="fw-semibold small">Database</div><div class="text-muted small">Pre-configured in application.yml</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="d-flex gap-3 align-items-start p-3 bg-light rounded">
+            <i class="bi bi-person-badge fs-4 text-primary"></i>
+            <div><div class="fw-semibold small">Admin Credentials</div><div class="text-muted small">Email and password for first admin</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="d-flex gap-3 align-items-start p-3 bg-light rounded">
+            <i class="bi bi-envelope fs-4 text-primary"></i>
+            <div><div class="fw-semibold small">Email Address</div><div class="text-muted small">For admin account login</div></div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="d-flex gap-3 align-items-start p-3 bg-light rounded">
+            <i class="bi bi-telephone fs-4 text-primary"></i>
+            <div><div class="fw-semibold small">Phone Number</div><div class="text-muted small">Admin contact number</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end">
+    <a href="/install/step/1" class="btn btn-primary px-4">
+        Get Started <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+</div>
+</section>
+</body>
+</html>

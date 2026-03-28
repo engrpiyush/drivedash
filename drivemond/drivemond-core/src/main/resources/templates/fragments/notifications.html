@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+    Notification bell dropdown fragment.
+    Included in layouts/admin.html navbar.
+    Data is fetched asynchronously via GET /admin/get-notifications (JSON)
+    and rendered by admin.js.
+-->
+<div th:fragment="notifications" class="dropdown">
+
+    <button class="btn btn-outline-light position-relative"
+            type="button" id="notifBell"
+            data-bs-toggle="dropdown" aria-expanded="false"
+            onclick="loadNotifications()">
+        &#128276;
+        <span id="notif-badge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+            0
+        </span>
+    </button>
+
+    <ul class="dropdown-menu dropdown-menu-end" id="notif-list"
+        aria-labelledby="notifBell" style="min-width:320px; max-height:400px; overflow-y:auto;">
+        <li class="dropdown-item text-muted text-center small">Loading…</li>
+    </ul>
+
+</div>
+
+</body>
+</html>

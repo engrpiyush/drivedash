@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Edit Vehicle')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Edit Vehicle</h2>
+        <a th:href="@{/admin/vehicles}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form id="vehicle_form" th:action="@{'/admin/vehicles/' + ${vehicle.id}}"
+          method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" name="_method" value="PUT"/>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">Vehicle Information</h5></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Brand *</label>
+                        <select id="brandSelect" name="brandId" class="form-select" required
+                                th:data-model-id="${vehicle.modelId}"
+                                onchange="loadModels(this.value, this.dataset.modelId)"
+                                th:attr="data-selected=${vehicle.brandId}">
+                            <option value="">Select brand</option>
+                            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"
+                                    th:selected="${b.id == vehicle.brandId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Model *</label>
+                        <select id="modelSelect" name="modelId" class="form-select" required>
+                            <option value="">Loading...</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Category *</label>
+                        <select name="categoryId" class="form-select" required>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"
+                                    th:selected="${c.id == vehicle.categoryId}"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Licence Plate Number *</label>
+                        <input type="text" name="licencePlateNumber" class="form-control"
+                               th:value="${vehicle.licencePlateNumber}" required/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Licence Expire Date *</label>
+                        <input type="date" name="licenceExpireDate" class="form-control"
+                               th:value="${vehicle.licenceExpireDate}" required/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">VIN Number</label>
+                        <input type="text" name="vinNumber" class="form-control"
+                               th:value="${vehicle.vinNumber}"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Transmission</label>
+                        <input type="text" name="transmission" class="form-control"
+                               th:value="${vehicle.transmission}"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Fuel Type *</label>
+                        <select name="fuelType" class="form-select" required>
+                            <option th:each="f : ${fuelTypes}" th:value="${f}" th:text="${f.label()}"
+                                    th:selected="${f == vehicle.fuelType}"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Ownership *</label>
+                        <select name="ownership" class="form-select" required>
+                            <option th:each="o : ${ownerships}" th:value="${o}" th:text="${o}"
+                                    th:selected="${o == vehicle.ownership}"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4" th:attr="data-driver-id=${vehicle.driverId}">
+                        <label class="form-label">Driver *</label>
+                        <select id="driverSelect" name="driverId" class="form-select" required>
+                            <option value="">Loading drivers...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">Add Documents (optional)</h5></div>
+            <div class="card-body">
+                <input type="file" name="documents" class="form-control" multiple
+                       accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv"/>
+                <small class="text-muted">New files will be appended to existing documents.</small>
+                <div th:if="${vehicle.documents != null and !vehicle.documents.isEmpty()}" class="mt-2">
+                    <p class="mb-1 text-muted small">Existing documents:</p>
+                    <ul class="list-unstyled mb-0">
+                        <li th:each="doc : ${vehicle.documents}">
+                            <a th:href="@{'/uploads/' + ${doc}}" target="_blank" th:text="${doc}"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Update Vehicle</button>
+        </div>
+    </form>
+</main>
+
+<script th:inline="javascript">
+    "use strict";
+
+    const CURRENT_MODEL_ID = /*[[${vehicle.modelId}]]*/ null;
+    const CURRENT_DRIVER_ID = /*[[${vehicle.driverId}]]*/ null;
+
+    function loadModels(brandId, selectedModelId) {
+        const sel = document.getElementById('modelSelect');
+        if (!brandId) { sel.innerHTML = '<option>Select brand first</option>'; return; }
+        fetch('/admin/vehicle/attribute-setup/model/ajax/' + brandId)
+            .then(r => r.json())
+            .then(data => {
+                const mid = selectedModelId || CURRENT_MODEL_ID;
+                sel.innerHTML = '<option value="">Select model</option>' +
+                    data.map(m => `<option value="${m.id}" ${m.id == mid ? 'selected' : ''}>${m.text}</option>`).join('');
+            });
+    }
+
+    window.addEventListener('load', function () {
+        // Load models for currently selected brand
+        const brandSel = document.getElementById('brandSelect');
+        if (brandSel.value) { loadModels(brandSel.value, CURRENT_MODEL_ID); }
+
+        // Load drivers
+        fetch('/admin/vehicles/ajax/drivers')
+            .then(r => r.json())
+            .then(data => {
+                const sel = document.getElementById('driverSelect');
+                sel.innerHTML = '<option value="">Select driver</option>' +
+                    data.map(d => `<option value="${d.id}" ${d.id == CURRENT_DRIVER_ID ? 'selected' : ''}>${d.text}</option>`).join('');
+            });
+    });
+</script>
+</body>
+</html>

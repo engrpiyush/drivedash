@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Social Media Links')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between mb-3">
+        <h2>Social Media Links</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLinkModal">
+            + Add Link
+        </button>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>#</th><th>Platform</th><th>URL</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="link, iter : ${socialLinks}">
+                        <td th:text="${iter.count}"></td>
+                        <td th:text="${link.name}"></td>
+                        <td><a th:href="${link.link}" target="_blank" th:text="${link.link}"></a></td>
+                        <td>
+                            <span th:class="${link.active} ? 'badge bg-success' : 'badge bg-secondary'"
+                                  th:text="${link.active} ? 'Active' : 'Inactive'"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/business/pages-media/update-social-link-status(id=${link.id},status=${!link.active})}"
+                               class="btn btn-sm btn-outline-secondary">Toggle</a>
+                            <form th:action="@{/admin/business/pages-media/delete-social-link}"
+                                  method="post" class="d-inline">
+                                <input type="hidden" name="_method" value="DELETE"/>
+                                <input type="hidden" name="id" th:value="${link.id}"/>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Delete?')">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(socialLinks)}">
+                        <td colspan="5" class="text-center text-muted">No social links added yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<!-- Add Link Modal -->
+<div class="modal fade" id="addLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/admin/business/pages-media/store-social-link}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Social Link</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Platform Name</label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="e.g. Facebook" required/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">URL</label>
+                        <input type="url" name="link" class="form-control"
+                               placeholder="https://facebook.com/yourpage" required/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

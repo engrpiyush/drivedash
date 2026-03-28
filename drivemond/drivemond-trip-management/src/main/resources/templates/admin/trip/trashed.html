@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Trashed Trips')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Trashed Trips</h2>
+        <a th:href="@{/admin/trips}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Trip ID</th>
+                    <th>Type</th>
+                    <th>Customer</th>
+                    <th>Driver</th>
+                    <th>Status</th>
+                    <th>Paid Fare</th>
+                    <th>Deleted At</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="trip, iter : ${trips}">
+                    <td th:text="${iter.count}"></td>
+                    <td th:text="${trip.refId}"></td>
+                    <td><span class="badge bg-secondary" th:text="${trip.type}"></span></td>
+                    <td>
+                        <span th:if="${trip.customer != null}"
+                              th:text="${trip.customer.firstName + ' ' + trip.customer.lastName}"></span>
+                        <span th:if="${trip.customer == null}" class="text-muted">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${trip.driver != null}"
+                              th:text="${trip.driver.firstName + ' ' + trip.driver.lastName}"></span>
+                        <span th:if="${trip.driver == null}" class="text-muted">—</span>
+                    </td>
+                    <td><span class="badge bg-secondary" th:text="${trip.currentStatus}"></span></td>
+                    <td th:text="${trip.paidFare}"></td>
+                    <td th:text="${trip.deletedAt}"></td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{'/admin/trips/' + ${trip.id} + '/restore'}"
+                               class="btn btn-sm btn-outline-success"
+                               onclick="return confirm('Restore this trip?')">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </a>
+                            <form th:action="@{'/admin/trips/' + ${trip.id} + '/permanent'}"
+                                  method="post" class="d-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Permanently delete? This cannot be undone.')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${trips.isEmpty()}">
+                    <td colspan="9" class="text-center text-muted py-4">No trashed trips.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

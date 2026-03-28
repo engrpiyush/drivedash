@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Vehicles')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicle/attribute-setup/brand}">Brands</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicle/attribute-setup/category}">Categories</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicle/attribute-setup/model}">Models</a></li>
+        <li class="nav-item"><a class="nav-link active" th:href="@{/admin/vehicles}">Vehicles</a></li>
+    </ul>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Category stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3" th:each="cat : ${categories}">
+            <div class="card text-center">
+                <div class="card-body">
+                    <img th:if="${cat.image != null}" th:src="@{'/uploads/' + ${cat.image}}"
+                         alt="cat" style="height:36px;" class="mb-2"/>
+                    <h6 class="text-primary mb-1" th:text="${cat.name}"></h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Vehicle List</h2>
+        <div class="d-flex gap-2">
+            <a sec:authorize="hasRole('SUPER_ADMIN')"
+               th:href="@{/admin/vehicles/trashed}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-recycle"></i> Trashed
+            </a>
+            <a th:href="@{/admin/vehicles/create}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus"></i> Add Vehicle
+            </a>
+        </div>
+    </div>
+
+    <!-- Status filter -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'all'} ? 'active'"
+                                th:href="@{/admin/vehicles(status='all')}">All</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'active'} ? 'active'"
+                                th:href="@{/admin/vehicles(status='active')}">Active</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'inactive'} ? 'active'"
+                                th:href="@{/admin/vehicles(status='inactive')}">Inactive</a></li>
+    </ul>
+
+    <!-- Search -->
+    <form th:action="@{/admin/vehicles}" method="get" class="d-flex gap-2 mb-3">
+        <input type="hidden" name="status" th:value="${status}"/>
+        <input type="text" name="search" class="form-control w-auto"
+               th:value="${search}" placeholder="Search by license / VIN..."/>
+        <button class="btn btn-outline-primary">Search</button>
+    </form>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Total: <strong class="text-primary"
+                        th:text="${vehicles.totalElements}">0</strong></span>
+            </div>
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Ref</th>
+                    <th>Brand / Model</th>
+                    <th>Category</th>
+                    <th>License</th>
+                    <th>Fuel</th>
+                    <th>Owner</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v, iter : ${vehicles.content}">
+                    <td th:text="${vehicles.number * vehicles.size + iter.count}"></td>
+                    <td th:text="${v.refId}"></td>
+                    <td>
+                        <div th:text="${v.brand != null ? v.brand.name : '—'}"></div>
+                        <small class="text-muted" th:text="${v.model != null ? v.model.name : ''}"></small>
+                    </td>
+                    <td th:text="${v.category != null ? v.category.name : '—'}"></td>
+                    <td>
+                        <div th:text="${v.licencePlateNumber}"></div>
+                        <small class="text-muted"
+                               th:text="${v.licenceExpireDate != null ? 'Exp: ' + #temporals.format(v.licenceExpireDate, 'dd/MM/yyyy') : ''}"></small>
+                    </td>
+                    <td th:text="${v.fuelType}"></td>
+                    <td th:text="${v.ownership}"></td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" th:checked="${v.active}"
+                                   th:data-href="@{/admin/vehicles/status(id=${v.id},status=${!v.active},currentStatus=${status})}"
+                                   onclick="window.location=this.dataset.href"/>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{'/admin/vehicles/' + ${v.id} + '/edit'}"
+                               class="btn btn-sm btn-outline-info"><i class="bi bi-pencil-fill"></i></a>
+                            <form th:action="@{'/admin/vehicles/' + ${v.id}}" method="post" class="d-inline">
+                                <input type="hidden" name="_method" value="DELETE"/>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete this vehicle?')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${vehicles.content.isEmpty()}">
+                    <td colspan="9" class="text-center text-muted py-4">No vehicles found.</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <nav th:if="${vehicles.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${vehicles.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/vehicles(status=${status},search=${search},page=${vehicles.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, vehicles.totalPages - 1)}"
+                        th:classappend="${i == vehicles.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/vehicles(status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${vehicles.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/vehicles(status=${status},search=${search},page=${vehicles.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+</body>
+</html>

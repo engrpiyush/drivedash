@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Business Information')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Business Information</h2>
+    </div>
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-danger"  th:text="${error}"></div>
+
+    <form th:action="@{/admin/business/setup/info/store}"
+          method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="card mb-4">
+            <div class="card-header">General</div>
+            <div class="card-body row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Business Name</label>
+                    <input type="text" name="business_name" class="form-control"
+                           th:value="${settings?.?[keyName == 'business_name']?.get(0)?.value?.get('v')}"
+                           required/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Business Email</label>
+                    <input type="email" name="business_email" class="form-control"
+                           th:value="${settings?.?[keyName == 'business_email']?.get(0)?.value?.get('v')}"/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Business Phone</label>
+                    <input type="text" name="business_phone" class="form-control"
+                           th:value="${settings?.?[keyName == 'business_phone']?.get(0)?.value?.get('v')}"/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Currency Code (e.g. USD)</label>
+                    <input type="text" name="currency_code" class="form-control"
+                           th:value="${settings?.?[keyName == 'currency_code']?.get(0)?.value?.get('v')}"/>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Copyright Text</label>
+                    <input type="text" name="copyright_text" class="form-control"
+                           th:value="${settings?.?[keyName == 'copyright_text']?.get(0)?.value?.get('v')}"/>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Branding Assets</div>
+            <div class="card-body row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label">Header Logo</label>
+                    <input type="file" name="header_logo" class="form-control" accept="image/*"/>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Favicon</label>
+                    <input type="file" name="favicon" class="form-control" accept="image/*"/>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Preloader</label>
+                    <input type="file" name="preloader" class="form-control" accept="image/*"/>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Verification & Registration</div>
+            <div class="card-body row g-3">
+
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="driver_verification" id="driverVerification"/>
+                        <label class="form-check-label" for="driverVerification">Driver Verification</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="customer_verification" id="customerVerification"/>
+                        <label class="form-check-label" for="customerVerification">Customer Verification</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="email_verification" id="emailVerification"/>
+                        <label class="form-check-label" for="emailVerification">Email Verification</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="driver_self_registration" id="driverSelfReg"/>
+                        <label class="form-check-label" for="driverSelfReg">Driver Self Registration</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox"
+                               name="otp_verification" id="otpVerification"/>
+                        <label class="form-check-label" for="otpVerification">OTP Verification</label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+
+</main>
+</body>
+</html>

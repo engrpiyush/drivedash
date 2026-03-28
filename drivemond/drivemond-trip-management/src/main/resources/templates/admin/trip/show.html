@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Trip Details')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Trip #<span th:text="${trip.refId}"></span></h2>
+        <a th:href="@{/admin/trips}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <!-- Status header -->
+    <div class="d-flex gap-3 mb-4 flex-wrap align-items-center">
+        <span class="badge fs-6"
+              th:classappend="${trip.currentStatus == 'completed'} ? 'bg-success' :
+                             (${trip.currentStatus == 'cancelled'} ? 'bg-danger' :
+                             (${trip.currentStatus == 'ongoing'} ? 'bg-primary' : 'bg-warning text-dark'))"
+              th:text="${trip.currentStatus}"></span>
+        <span class="badge"
+              th:classappend="${trip.paymentStatus == 'paid'} ? 'bg-success' : 'bg-warning text-dark'"
+              th:text="${trip.paymentStatus}"></span>
+        <span class="badge bg-secondary" th:text="${trip.type}"></span>
+        <span class="text-muted small"
+              th:text="${#temporals.format(trip.createdAt, 'dd MMM yyyy, hh:mm a')}"></span>
+    </div>
+
+    <div class="row g-3">
+
+        <!-- Driver & Customer cards -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-person-fill-gear me-2"></i>Driver</h6>
+                    <th:block th:if="${trip.driver != null}">
+                        <div class="fw-semibold"
+                             th:text="${trip.driver.firstName + ' ' + trip.driver.lastName}"></div>
+                        <div class="text-muted small" th:text="${trip.driver.phone}"></div>
+                        <div class="text-muted small" th:text="${trip.driver.email}"></div>
+                    </th:block>
+                    <th:block th:if="${trip.driver == null}">
+                        <span class="text-muted" th:text="${trip.currentStatus == 'pending'} ? 'Awaiting driver assignment' : 'No driver assigned'"></span>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-person-fill me-2"></i>Customer</h6>
+                    <th:block th:if="${trip.customer != null}">
+                        <div class="fw-semibold"
+                             th:text="${trip.customer.firstName + ' ' + trip.customer.lastName}"></div>
+                        <div class="text-muted small" th:text="${trip.customer.phone}"></div>
+                        <div class="text-muted small" th:text="${trip.customer.email}"></div>
+                    </th:block>
+                    <th:block th:if="${trip.customer == null}">
+                        <span class="text-muted">No customer assigned</span>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pickup / Destination -->
+        <div class="col-md-6" th:if="${coordinate != null}">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-geo-alt-fill me-2 text-success"></i>Pickup</h6>
+                    <p class="mb-1" th:text="${coordinate.pickupAddress ?: 'N/A'}"></p>
+                    <span class="text-muted small"
+                          th:if="${coordinate.pickupLat != null}"
+                          th:text="${coordinate.pickupLat + ', ' + coordinate.pickupLng}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" th:if="${coordinate != null}">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-geo-alt-fill me-2 text-danger"></i>Destination</h6>
+                    <p class="mb-1" th:text="${coordinate.destinationAddress ?: 'N/A'}"></p>
+                    <span class="text-muted small"
+                          th:if="${coordinate.destinationLat != null}"
+                          th:text="${coordinate.destinationLat + ', ' + coordinate.destinationLng}"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cancellation reason -->
+        <div class="col-12" th:if="${trip.tripCancellationReason != null}">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <h6 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Cancellation Reason</h6>
+                    <p class="mb-0" th:text="${trip.tripCancellationReason}"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip summary -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title fw-semibold">Trip Summary</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-7">Estimated Fare</dt>
+                        <dd class="col-5 text-end" th:text="${trip.estimatedFare}"></dd>
+
+                        <dt class="col-7">Actual Fare</dt>
+                        <dd class="col-5 text-end" th:text="${trip.actualFare}"></dd>
+
+                        <dt class="col-7" th:if="${fee != null}">Delay Fee</dt>
+                        <dd class="col-5 text-end" th:if="${fee != null}" th:text="${fee.delayFee}"></dd>
+
+                        <dt class="col-7" th:if="${fee != null}">Idle Fee</dt>
+                        <dd class="col-5 text-end" th:if="${fee != null}" th:text="${fee.idleFee}"></dd>
+
+                        <dt class="col-7" th:if="${fee != null}">Cancellation Fee</dt>
+                        <dd class="col-5 text-end" th:if="${fee != null}" th:text="${fee.cancellationFee}"></dd>
+
+                        <dt class="col-7">Coupon Discount</dt>
+                        <dd class="col-5 text-end"
+                            th:text="${trip.couponAmount != null ? '-' + trip.couponAmount : '0'}"></dd>
+
+                        <dt class="col-7" th:if="${fee != null}">VAT / Tax</dt>
+                        <dd class="col-5 text-end" th:if="${fee != null}" th:text="${fee.vatTax}"></dd>
+
+                        <dt class="col-7 fw-bold border-top pt-2">Total Paid</dt>
+                        <dd class="col-5 text-end fw-bold text-primary border-top pt-2"
+                            th:text="${trip.paidFare}"></dd>
+
+                        <dt class="col-7" th:if="${fee != null}">Admin Commission</dt>
+                        <dd class="col-5 text-end text-success fw-semibold"
+                            th:if="${fee != null}" th:text="${fee.adminCommission}"></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip times -->
+        <div class="col-md-6" th:if="${time != null}">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title fw-semibold">Trip Times</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-7">Estimated Time</dt>
+                        <dd class="col-5 text-end"
+                            th:text="${time.estimatedTime + ' min'}"></dd>
+
+                        <dt class="col-7" th:if="${time.actualTime != null}">Actual Time</dt>
+                        <dd class="col-5 text-end" th:if="${time.actualTime != null}"
+                            th:text="${time.actualTime + ' min'}"></dd>
+
+                        <dt class="col-7" th:if="${time.waitingTime != null}">Waiting Time</dt>
+                        <dd class="col-5 text-end" th:if="${time.waitingTime != null}"
+                            th:text="${time.waitingTime + ' min'}"></dd>
+
+                        <dt class="col-7" th:if="${time.delayTime != null}">Delay Time</dt>
+                        <dd class="col-5 text-end" th:if="${time.delayTime != null}"
+                            th:text="${time.delayTime + ' min'}"></dd>
+
+                        <dt class="col-7" th:if="${time.driverArrivesAt != null}">Driver Arrived</dt>
+                        <dd class="col-5 text-end" th:if="${time.driverArrivesAt != null}"
+                            th:text="${#temporals.format(time.driverArrivesAt, 'hh:mm a')}"></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status timeline -->
+        <div class="col-12" th:if="${tripStatus != null}">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title fw-semibold">Status Timeline</h6>
+                    <div class="d-flex flex-wrap gap-4">
+                        <div th:each="entry : ${ {
+                            {'Pending',      tripStatus.pending},
+                            {'Accepted',     tripStatus.accepted},
+                            {'Out For Pickup', tripStatus.outForPickup},
+                            {'Picked Up',    tripStatus.pickedUp},
+                            {'Ongoing',      tripStatus.ongoing},
+                            {'Completed',    tripStatus.completed},
+                            {'Cancelled',    tripStatus.cancelled},
+                            {'Failed',       tripStatus.failed}
+                        } }">
+                        </div>
+                        <th:block th:if="${tripStatus.pending != null}">
+                            <div class="text-center">
+                                <div class="badge bg-warning text-dark mb-1">Pending</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.pending, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tripStatus.accepted != null}">
+                            <div class="text-center">
+                                <div class="badge bg-info mb-1">Accepted</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.accepted, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tripStatus.outForPickup != null}">
+                            <div class="text-center">
+                                <div class="badge bg-info mb-1">Out for Pickup</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.outForPickup, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tripStatus.ongoing != null}">
+                            <div class="text-center">
+                                <div class="badge bg-primary mb-1">Ongoing</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.ongoing, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tripStatus.completed != null}">
+                            <div class="text-center">
+                                <div class="badge bg-success mb-1">Completed</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.completed, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                        <th:block th:if="${tripStatus.cancelled != null}">
+                            <div class="text-center">
+                                <div class="badge bg-danger mb-1">Cancelled</div>
+                                <div class="small text-muted"
+                                     th:text="${#temporals.format(tripStatus.cancelled, 'HH:mm')}"></div>
+                            </div>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distance & other stats -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title fw-semibold">Trip Info</h6>
+                    <dl class="row mb-0">
+                        <dt class="col-6">Estimated Distance</dt>
+                        <dd class="col-6 text-end"
+                            th:text="${trip.estimatedDistance + ' km'}"></dd>
+
+                        <dt class="col-6" th:if="${trip.actualDistance != null}">Actual Distance</dt>
+                        <dd class="col-6 text-end" th:if="${trip.actualDistance != null}"
+                            th:text="${trip.actualDistance + ' km'}"></dd>
+
+                        <dt class="col-6">Payment Method</dt>
+                        <dd class="col-6 text-end" th:text="${trip.paymentMethod ?: 'N/A'}"></dd>
+
+                        <dt class="col-6">Zone</dt>
+                        <dd class="col-6 text-end"
+                            th:text="${trip.zone != null ? trip.zone.name : 'N/A'}"></dd>
+
+                        <dt class="col-6">Vehicle Category</dt>
+                        <dd class="col-6 text-end"
+                            th:text="${trip.vehicleCategory != null ? trip.vehicleCategory.name : 'N/A'}"></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(php|example|env\\)$\")",
+      "Bash(xargs find:*)",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(data[0][''''text'''']\\)\")",
+      "Bash(python3 -c \"import json,sys; data=json.load\\(sys.stdin\\); [print\\(d.get\\(''''text'''',''''''''\\)\\) for d in data]\")",
+      "Bash(python3:*)",
+      "Bash(find /Users/piyushvishwakarma/workspace/combo-1.3/admin-panel -type d -name *romot* -o -type d -name *oupon* -o -type d -name *iscount* -o -type d -name *anner*)",
+      "Bash(find /Users/piyushvishwakarma/workspace/combo-1.3/admin-panel -type f -name *review* -o -type d -name *review*)",
+      "Bash(find /Users/piyushvishwakarma/workspace/combo-1.3/admin-panel -type d -name *[Cc]hat* -o -type d -name *[Mm]essage* -o -type d -name *[Cc]onversation*)",
+      "Bash(grep -E \"\\\\.php$\")",
+      "Bash(grep -r \"const.*PAYMENT\\\\|define.*PAYMENT\" /Users/piyushvishwakarma/workspace/combo-1.3/admin-panel/ --include=*.php)",
+      "Bash(xargs basename:*)",
+      "Bash(find /Users/piyushvishwakarma/workspace/combo-1.3/drivemond/drivemond-admin-module -type f -not -path */.*)",
+      "Bash(find /Users/piyushvishwakarma/workspace/combo-1.3/drivemond/drivemond-business-management/src/main/resources/templates/admin -name *.html)",
+      "Bash(grep -n \"parcel_information\\\\|parcel_informations\" /Users/piyushvishwakarma/workspace/combo-1.3/drivemond/drivemond-parcel-management/src/main/java/com/drivemond/parcel/entity/*.java)",
+      "Bash(find /Users/piyushvishwakarma/workspace/mercor-assignment/claude-code/drivemond/drivemond-core -name *.java)",
+      "Bash(find /Users/piyushvishwakarma/workspace/mercor-assignment/claude-code/drivemond/drivemond-auth -name application*.yml -o -name application*.properties)",
+      "Bash(find /Users/piyushvishwakarma/workspace/mercor-assignment/claude-code/drivemond -name application*.yml)"
+    ]
+  }
+}

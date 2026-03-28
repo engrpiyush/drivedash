@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Create Level')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Create User Level</h2>
+        <a th:href="@{/admin/user-levels}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/admin/user-levels}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">Level Information</h5></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-control" th:value="${req.name}" required/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">User Type *</label>
+                        <select name="userType" class="form-select" required>
+                            <option value="customer" th:selected="${req.userType == 'customer'}">Customer</option>
+                            <option value="driver" th:selected="${req.userType == 'driver'}">Driver</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Sequence *</label>
+                        <input type="number" name="sequence" class="form-control" th:value="${req.sequence}" min="1" required/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Reward Type</label>
+                        <select name="rewardType" class="form-select">
+                            <option value="point" th:selected="${req.rewardType == 'point'}">Point</option>
+                            <option value="percentage" th:selected="${req.rewardType == 'percentage'}">Percentage</option>
+                            <option value="amount" th:selected="${req.rewardType == 'amount'}">Amount</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Reward Amount</label>
+                        <input type="number" name="rewardAmount" class="form-control"
+                               th:value="${req.rewardAmount}" step="0.01"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <label class="form-label">Level Image</label>
+                        <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp,.svg"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">Targets &amp; Points</h5></div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Target Rides</label>
+                        <input type="number" name="targetedRide" class="form-control"
+                               th:value="${req.targetedRide}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Ride Points</label>
+                        <input type="number" name="targetedRidePoint" class="form-control"
+                               th:value="${req.targetedRidePoint}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Target Amount</label>
+                        <input type="number" name="targetedAmount" class="form-control"
+                               th:value="${req.targetedAmount}" step="0.01" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Amount Points</label>
+                        <input type="number" name="targetedAmountPoint" class="form-control"
+                               th:value="${req.targetedAmountPoint}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Max Cancellations</label>
+                        <input type="number" name="targetedCancel" class="form-control"
+                               th:value="${req.targetedCancel}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Cancel Points</label>
+                        <input type="number" name="targetedCancelPoint" class="form-control"
+                               th:value="${req.targetedCancelPoint}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Target Reviews</label>
+                        <input type="number" name="targetedReview" class="form-control"
+                               th:value="${req.targetedReview}" min="0"/>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <label class="form-label">Review Points</label>
+                        <input type="number" name="targetedReviewPoint" class="form-control"
+                               th:value="${req.targetedReviewPoint}" min="0"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0">Level Access Permissions</h5></div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-sm-4 col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="bid" value="true" th:checked="${req.bid}"/>
+                            <label class="form-check-label">Bid on trips</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="seeDestination" value="true" th:checked="${req.seeDestination}"/>
+                            <label class="form-check-label">See destination</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="seeSubtotal" value="true" th:checked="${req.seeSubtotal}"/>
+                            <label class="form-check-label">See subtotal</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="seeLevel" value="true" th:checked="${req.seeLevel}"/>
+                            <label class="form-check-label">See level info</label>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="createHireRequest" value="true" th:checked="${req.createHireRequest}"/>
+                            <label class="form-check-label">Create hire request</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Create Level</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

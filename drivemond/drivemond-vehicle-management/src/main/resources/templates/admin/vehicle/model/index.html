@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Vehicle Models')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicle/attribute-setup/brand}">Brands</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicle/attribute-setup/category}">Categories</a></li>
+        <li class="nav-item"><a class="nav-link active" th:href="@{/admin/vehicle/attribute-setup/model}">Models</a></li>
+        <li class="nav-item"><a class="nav-link" th:href="@{/admin/vehicles}">Vehicles</a></li>
+    </ul>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Add Model Form -->
+    <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Add New Model</h5></div>
+        <div class="card-body">
+            <form th:action="@{/admin/vehicle/attribute-setup/model}" method="post" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Brand *</label>
+                        <select name="brandId" class="form-select" required>
+                            <option value="">Select brand</option>
+                            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Model Name *</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Camry" required/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Engine *</label>
+                        <input type="text" name="engine" class="form-control" placeholder="e.g. 2.0L" required/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Seat Capacity</label>
+                        <input type="number" name="seatCapacity" class="form-control" min="1"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Max Weight (kg)</label>
+                        <input type="number" step="0.01" name="maximumWeight" class="form-control" min="0"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Hatch Bag Capacity</label>
+                        <input type="number" name="hatchBagCapacity" class="form-control" min="0"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" name="description" class="form-control"/>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Image (PNG)</label>
+                        <input type="file" name="image" class="form-control" accept="image/png"/>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Add Model</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter + List -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5>Model List</h5>
+        <a sec:authorize="hasRole('SUPER_ADMIN')"
+           th:href="@{/admin/vehicle/attribute-setup/model/trashed}"
+           class="btn btn-sm btn-outline-warning"><i class="bi bi-recycle"></i> Trashed</a>
+    </div>
+
+    <form th:action="@{/admin/vehicle/attribute-setup/model}" method="get"
+          class="d-flex flex-wrap gap-2 mb-3">
+        <select name="brandId" class="form-select w-auto">
+            <option value="">All Brands</option>
+            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"
+                    th:selected="${b.id == selectedBrandId}"></option>
+        </select>
+        <input type="text" name="search" class="form-control w-auto"
+               th:value="${search}" placeholder="Search model..."/>
+        <button class="btn btn-outline-primary">Filter</button>
+    </form>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                <tr><th>#</th><th>Image</th><th>Model</th><th>Brand</th><th>Seats</th><th>Engine</th><th>Status</th><th class="text-center">Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="m, iter : ${models.content}">
+                    <td th:text="${models.number * models.size + iter.count}"></td>
+                    <td>
+                        <img th:if="${m.image != null}" th:src="@{'/uploads/' + ${m.image}}"
+                             alt="model" style="height:40px;width:40px;object-fit:cover;" class="rounded"/>
+                        <span th:unless="${m.image != null}">—</span>
+                    </td>
+                    <td th:text="${m.name}"></td>
+                    <td th:text="${m.brand != null ? m.brand.name : '—'}"></td>
+                    <td th:text="${m.seatCapacity}"></td>
+                    <td th:text="${m.engine}"></td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" th:checked="${m.active}"
+                                   th:data-href="@{/admin/vehicle/attribute-setup/model/status(id=${m.id},status=${!m.active},currentStatus=${status})}"
+                                   onclick="window.location=this.dataset.href"/>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{'/admin/vehicle/attribute-setup/model/' + ${m.id} + '/edit'}"
+                               class="btn btn-sm btn-outline-info"><i class="bi bi-pencil-fill"></i></a>
+                            <form th:action="@{'/admin/vehicle/attribute-setup/model/' + ${m.id}}"
+                                  method="post" class="d-inline">
+                                <input type="hidden" name="_method" value="DELETE"/>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete?')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${models.content.isEmpty()}">
+                    <td colspan="8" class="text-center text-muted py-4">No models found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

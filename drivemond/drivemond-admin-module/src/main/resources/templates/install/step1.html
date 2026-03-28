@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/install :: layout('Requirements', ~{::section})}">
+<body>
+<section>
+<div class="d-flex align-items-center gap-2 mb-4 step-indicator">
+    <div class="step done">&#10003;</div><div class="flex-fill" style="height:2px;background:#198754"></div>
+    <div class="step active">2</div><div class="flex-fill" style="height:2px;background:#dee2e6"></div>
+    <div class="step pending">3</div>
+</div>
+
+<h5 class="fw-bold mb-1">System Requirements</h5>
+<p class="text-muted mb-4">Checking your environment before installation.</p>
+
+<div class="mb-4">
+    <div class="req-row">
+        <span>Java Version</span>
+        <span><code th:text="${javaVersion}">17</code>
+            <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
+    </div>
+    <div class="req-row">
+        <span>Available Memory</span>
+        <span><span th:text="${memoryMb + ' MB'}">256 MB</span>
+            <i class="bi ms-1" th:classappend="${memoryMb >= 256} ? 'bi-check-circle-fill text-success' : 'bi-exclamation-triangle-fill text-warning'"></i></span>
+    </div>
+    <div class="req-row">
+        <span>Database Connection</span>
+        <span th:if="${dbOk}"><span class="text-success fw-semibold">Connected</span> <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
+        <span th:unless="${dbOk}"><span class="text-danger fw-semibold">Failed</span> <i class="bi bi-x-circle-fill text-danger ms-1"></i></span>
+    </div>
+    <div class="req-row">
+        <span>Flyway Migrations</span>
+        <span><span class="text-success fw-semibold">Applied at startup</span> <i class="bi bi-check-circle-fill text-success ms-1"></i></span>
+    </div>
+</div>
+
+<div th:unless="${dbOk}" class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    Database connection failed. Please verify your <code>application.yml</code> datasource settings and restart the application.
+</div>
+
+<div class="d-flex justify-content-between">
+    <a href="/install/step/0" class="btn btn-outline-secondary px-4">
+        <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+    <a th:href="${dbOk} ? '/install/step/2' : '#'"
+       th:classappend="${dbOk} ? 'btn-primary' : 'btn-secondary disabled'"
+       class="btn px-4">
+        Continue <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+</div>
+</section>
+</body>
+</html>

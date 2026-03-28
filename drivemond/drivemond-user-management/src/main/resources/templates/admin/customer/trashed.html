@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Deleted Customers')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Deleted Customers</h2>
+        <a th:href="@{/admin/customers}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                <tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Deleted At</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="c, iter : ${customers.content}">
+                    <td th:text="${iter.count}"></td>
+                    <td th:text="${c.firstName + ' ' + (c.lastName ?: '')}"></td>
+                    <td th:text="${c.email}"></td>
+                    <td th:text="${c.phone}"></td>
+                    <td th:text="${#temporals.format(c.deletedAt, 'dd MMM yyyy')}"></td>
+                </tr>
+                <tr th:if="${customers.content.isEmpty()}">
+                    <td colspan="5" class="text-center text-muted py-4">No deleted customers.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+</body>
+</html>

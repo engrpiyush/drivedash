@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Withdraw Request')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between mb-4">
+        <h2>Withdraw Request #<span th:text="${request.id}"></span></h2>
+        <a th:href="@{/admin/withdraw/requests}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header"><h5 class="mb-0">Request Details</h5></div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">User ID</dt>
+                        <dd class="col-sm-7" th:text="${request.userId}"></dd>
+                        <dt class="col-sm-5">Amount</dt>
+                        <dd class="col-sm-7 fw-bold" th:text="${request.amount}"></dd>
+                        <dt class="col-sm-5">Method</dt>
+                        <dd class="col-sm-7" th:text="${request.method != null ? request.method.methodName : '—'}"></dd>
+                        <dt class="col-sm-5">Note</dt>
+                        <dd class="col-sm-7" th:text="${request.note ?: '—'}"></dd>
+                        <dt class="col-sm-5">Submitted</dt>
+                        <dd class="col-sm-7" th:text="${#temporals.format(request.createdAt, 'dd MMM yyyy HH:mm')}"></dd>
+                        <dt class="col-sm-5">Status</dt>
+                        <dd class="col-sm-7">
+                            <span th:if="${request.approved == null}" class="badge bg-warning text-dark">Pending</span>
+                            <span th:if="${request.approved != null and request.approved}" class="badge bg-success">Approved</span>
+                            <span th:if="${request.approved != null and !request.approved}" class="badge bg-danger">Rejected</span>
+                        </dd>
+                        <div th:if="${request.rejectionCause != null}">
+                            <dt class="col-sm-5">Rejection Cause</dt>
+                            <dd class="col-sm-7 text-danger" th:text="${request.rejectionCause}"></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" th:if="${request.approved == null}">
+            <div class="card">
+                <div class="card-header"><h5 class="mb-0">Take Action</h5></div>
+                <div class="card-body">
+                    <form th:action="@{'/admin/withdraw/requests/' + ${request.id} + '/action'}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <div class="mb-3">
+                            <label class="form-label">Decision *</label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="approved" value="true" id="approve"/>
+                                    <label class="form-check-label text-success fw-bold" for="approve">Approve</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="approved" value="false" id="reject"/>
+                                    <label class="form-check-label text-danger fw-bold" for="reject">Reject</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Rejection Cause <small class="text-muted">(if rejecting)</small></label>
+                            <textarea name="rejectionCause" class="form-control" rows="3"
+                                      placeholder="Provide reason for rejection..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Submit Decision</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

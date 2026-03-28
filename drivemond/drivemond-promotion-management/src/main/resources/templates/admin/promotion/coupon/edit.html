@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Edit Coupon')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Edit Coupon</h2>
+        <a th:href="@{/admin/promotion/coupons}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <form th:action="@{'/admin/promotion/coupons/' + ${coupon.id}}" method="post"
+          th:object="${req}" class="card">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="card-body">
+            <h5 class="text-primary text-uppercase mb-4">Update Coupon</h5>
+            <div class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label">Coupon Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="name"
+                           th:value="${coupon.name}" required maxlength="50"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Coupon Code</label>
+                    <input type="text" class="form-control bg-light"
+                           th:value="${coupon.couponCode}" readonly/>
+                    <!-- coupon_code is not updated on edit (read-only) -->
+                    <input type="hidden" name="couponCode" th:value="${coupon.couponCode}"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Description <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="description"
+                           th:value="${coupon.description}" required maxlength="255"/>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Coupon Type</label>
+                    <select class="form-select" name="couponType"
+                            onchange="toggleCouponType(this.value)">
+                        <option value="default" th:selected="${coupon.couponType == 'default'}">Default</option>
+                        <option value="first_order" th:selected="${coupon.couponType == 'first_order'}">First Order</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Amount Type</label>
+                    <select class="form-select" name="amountType"
+                            onchange="toggleAmountType(this.value)">
+                        <option value="percentage" th:selected="${coupon.amountType == 'percentage'}">Percentage (%)</option>
+                        <option value="amount" th:selected="${coupon.amountType == 'amount'}">Fixed Amount</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Usage Limit (per user) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" name="limit"
+                           th:value="${coupon.limit}" required min="1"/>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Discount Value <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" class="form-control" name="coupon"
+                           th:value="${coupon.coupon}" required min="0.01"/>
+                </div>
+                <div class="col-md-3" id="maxCouponCol"
+                     th:style="${coupon.amountType != 'percentage'} ? 'display:none' : ''">
+                    <label class="form-label">Max Discount Amount</label>
+                    <input type="number" step="0.01" class="form-control" name="maxCouponAmount"
+                           th:value="${coupon.maxCouponAmount}"/>
+                </div>
+                <div class="col-md-3" id="minTripCol"
+                     th:style="${coupon.couponType == 'first_order'} ? 'display:none' : ''">
+                    <label class="form-label">Minimum Trip Amount <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" class="form-control" name="minTripAmount"
+                           th:value="${coupon.minTripAmount}" id="minTripAmount"
+                           th:required="${coupon.couponType != 'first_order'}"/>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="startDate"
+                           th:value="${coupon.startDate}" required/>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="endDate"
+                           th:value="${coupon.endDate}" required/>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">User Level (optional)</label>
+                    <select class="form-select" name="userLevelId">
+                        <option value="">— All Levels —</option>
+                        <option th:each="level : ${userLevels}" th:value="${level.id}"
+                                th:selected="${coupon.userLevelId != null and coupon.userLevelId == level.id}"
+                                th:text="${level.name}"></option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Coupon Rules <span class="text-danger">*</span></label>
+                    <select class="form-select" name="rules" onchange="toggleRules(this.value)">
+                        <option value="default" th:selected="${coupon.rules == 'default'}">Default (All)</option>
+                        <option value="vehicle_category_wise"
+                                th:selected="${coupon.rules == 'vehicle_category_wise'}">Vehicle Category Wise</option>
+                    </select>
+                </div>
+
+                <div class="col-md-8" id="categorySection"
+                     th:style="${coupon.rules != 'vehicle_category_wise'} ? 'display:none' : ''">
+                    <label class="form-label">Vehicle Categories</label>
+                    <select class="form-select" id="vehicleCategorySelect" multiple size="4"
+                            name="vehicleCategoryIds">
+                    </select>
+                    <div class="form-text">Hold Ctrl/Cmd to select multiple</div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4 gap-2">
+                <a th:href="@{/admin/promotion/coupons}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </form>
+</main>
+<script th:inline="javascript">
+    const existingCategoryIds = /*[[${coupon.vehicleCategoryIds}]]*/ [];
+
+    function toggleAmountType(type) {
+        document.getElementById('maxCouponCol').style.display = type === 'percentage' ? '' : 'none';
+    }
+
+    function toggleCouponType(type) {
+        const isFirstOrder = type === 'first_order';
+        document.getElementById('minTripCol').style.display = isFirstOrder ? 'none' : '';
+        document.getElementById('minTripAmount').required = !isFirstOrder;
+    }
+
+    function toggleRules(rules) {
+        const catSection = document.getElementById('categorySection');
+        catSection.style.display = rules === 'vehicle_category_wise' ? '' : 'none';
+        if (rules === 'vehicle_category_wise') loadCategories();
+    }
+
+    function loadCategories() {
+        fetch('/api/v1/vehicle/categories')
+            .then(r => r.json())
+            .then(data => {
+                const select = document.getElementById('vehicleCategorySelect');
+                select.innerHTML = '';
+                data.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    opt.selected = existingCategoryIds.includes(cat.id);
+                    select.appendChild(opt);
+                });
+            });
+    }
+
+    // Init
+    const currentRules = /*[[${coupon.rules}]]*/ 'default';
+    const currentAmountType = /*[[${coupon.amountType}]]*/ 'percentage';
+    toggleAmountType(currentAmountType);
+    if (currentRules === 'vehicle_category_wise') loadCategories();
+</script>
+</body>
+</html>

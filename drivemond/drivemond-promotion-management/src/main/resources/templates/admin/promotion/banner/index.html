@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Banners')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Banner Setup</h2>
+        <a sec:authorize="hasRole('SUPER_ADMIN')"
+           th:href="@{/admin/promotion/banners/trashed}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-recycle"></i> Trashed
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Inline create form -->
+    <form th:action="@{/admin/promotion/banners}" method="post"
+          enctype="multipart/form-data" class="card mb-4">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="card-body">
+            <h5 class="text-primary text-uppercase mb-4">Add New Banner</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Banner Name</label>
+                    <input type="text" class="form-control" name="name" required placeholder="Banner title"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Redirect Link</label>
+                    <input type="text" class="form-control" name="redirectLink" required placeholder="https://..."/>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Display Position</label>
+                    <select name="displayPosition" class="form-select">
+                        <option value="">Select</option>
+                        <option value="top">Top</option>
+                        <option value="middle">Middle</option>
+                        <option value="bottom">Bottom</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Banner Group</label>
+                    <input type="text" class="form-control" name="bannerGroup" placeholder="e.g. home"/>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Short Description</label>
+                    <input type="text" class="form-control" name="description" placeholder="Brief description"/>
+                </div>
+                <div class="col-md-2 d-flex align-items-center pt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="allTime" name="allTime"
+                               onchange="toggleDates(this.checked)"/>
+                        <label class="form-check-label" for="allTime">All Time</label>
+                    </div>
+                </div>
+                <div class="col-md-2" id="startDateCol">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" class="form-control" name="startDate" id="startDate"/>
+                </div>
+                <div class="col-md-2" id="endDateCol">
+                    <label class="form-label">End Date</label>
+                    <input type="date" class="form-control" name="endDate" id="endDate"/>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Banner Image</label>
+                    <input type="file" class="form-control" name="imageFile" accept="image/*" required/>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Status tabs + list -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'all'} ? 'active'"
+               th:href="@{/admin/promotion/banners(status='all')}">All</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'active'} ? 'active'"
+               th:href="@{/admin/promotion/banners(status='active')}">Active</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${status == 'inactive'} ? 'active'"
+               th:href="@{/admin/promotion/banners(status='inactive')}">Inactive</a>
+        </li>
+    </ul>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/admin/promotion/banners}" method="get" class="d-flex gap-2 mb-3">
+                <input type="hidden" name="status" th:value="${status}"/>
+                <input type="text" class="form-control" name="search" th:value="${search}"
+                       placeholder="Search by name..."/>
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">
+                    Total: <strong class="text-primary" th:text="${banners.totalElements}">0</strong>
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Position</th>
+                        <th>Period</th>
+                        <th>Redirections</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="b, iter : ${banners.content}">
+                        <td th:text="${banners.number * banners.size + iter.count}"></td>
+                        <td>
+                            <img th:src="@{'/uploads/' + ${b.image}}" alt="banner"
+                                 style="height:40px;width:70px;object-fit:cover;" class="rounded"
+                                 th:if="${b.image}"/>
+                            <span th:unless="${b.image}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <div th:text="${b.name}"></div>
+                            <div class="text-muted small" th:text="${b.bannerGroup}"></div>
+                        </td>
+                        <td th:text="${b.displayPosition ?: '—'}"></td>
+                        <td>
+                            <span th:if="${b.timePeriod == 'all_time'}" class="badge bg-secondary">All Time</span>
+                            <span th:unless="${b.timePeriod == 'all_time'}">
+                                <div class="small" th:if="${b.startDate}" th:text="${#temporals.format(b.startDate, 'dd MMM yyyy')}"></div>
+                                <div class="small text-muted" th:if="${b.endDate}" th:text="'→ ' + ${#temporals.format(b.endDate, 'dd MMM yyyy')}"></div>
+                            </span>
+                        </td>
+                        <td th:text="${b.totalRedirection}"></td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox"
+                                       th:checked="${b.isActive}"
+                                       th:data-href="@{/admin/promotion/banners/status(id=${b.id},active=${!b.isActive},status=${status})}"
+                                       onclick="window.location=this.dataset.href"/>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:href="@{'/admin/promotion/banners/' + ${b.id} + '/edit'}"
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:action="@{'/admin/promotion/banners/' + ${b.id} + '/delete'}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('Delete this banner?')">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${banners.content.isEmpty()}">
+                        <td colspan="8" class="text-center text-muted py-4">No banners found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav th:if="${banners.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${banners.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/promotion/banners(status=${status},search=${search},page=${banners.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, banners.totalPages - 1)}"
+                        th:classappend="${i == banners.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/promotion/banners(status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${banners.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/promotion/banners(status=${status},search=${search},page=${banners.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+<script>
+    function toggleDates(allTime) {
+        document.getElementById('startDateCol').style.display = allTime ? 'none' : '';
+        document.getElementById('endDateCol').style.display = allTime ? 'none' : '';
+        document.getElementById('startDate').required = !allTime;
+        document.getElementById('endDate').required = !allTime;
+    }
+</script>
+</body>
+</html>

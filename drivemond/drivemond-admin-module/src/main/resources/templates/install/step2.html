@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/install :: layout('Admin Setup', ~{::section})}">
+<body>
+<section>
+<div class="d-flex align-items-center gap-2 mb-4 step-indicator">
+    <div class="step done">&#10003;</div><div class="flex-fill" style="height:2px;background:#198754"></div>
+    <div class="step done">&#10003;</div><div class="flex-fill" style="height:2px;background:#198754"></div>
+    <div class="step active">3</div>
+</div>
+
+<h5 class="fw-bold mb-1">Create Admin Account</h5>
+<p class="text-muted mb-4">This will be your super-admin login.</p>
+
+<div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}">Error</div>
+
+<form action="/install/step/2" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <div class="row g-3">
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">First Name</label>
+            <input type="text" name="firstName" class="form-control" required placeholder="John">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">Last Name</label>
+            <input type="text" name="lastName" class="form-control" required placeholder="Doe">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">Email Address</label>
+            <input type="email" name="email" class="form-control" required placeholder="admin@example.com">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">Phone Number</label>
+            <input type="text" name="phone" class="form-control" required placeholder="+1234567890">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">Password <small class="text-muted">(min 8 chars)</small></label>
+            <input type="password" name="password" class="form-control" required minlength="8">
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-semibold">Confirm Password</label>
+            <input type="password" name="confirmPassword" class="form-control" required minlength="8">
+        </div>
+    </div>
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/install/step/1" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+        <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-check2-circle me-1"></i> Install DriveMond
+        </button>
+    </div>
+</form>
+</section>
+</body>
+</html>

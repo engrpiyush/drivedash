@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Trip Fare Setup')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Trip Fare Setup</h2>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="text-primary text-uppercase mb-4">Operation Zone Wise Ride Fare Setup</h5>
+
+            <th:block th:if="${zones.isEmpty()}">
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body text-center py-5">
+                        <h6 class="mb-4">Please add or activate a zone first</h6>
+                        <a th:href="@{/admin/zones}" class="btn btn-primary">
+                            <i class="bi bi-arrow-left"></i> Go to Zone Setup
+                        </a>
+                    </div>
+                </div>
+            </th:block>
+
+            <div th:each="zone, iter : ${zones}" class="card border-0 bg-light mb-3">
+                <div class="card-body">
+                    <div class="row gy-4 align-items-center">
+                        <div class="col-lg-4">
+                            <div class="d-flex gap-3">
+                                <span class="badge bg-primary fs-6 rounded-circle p-2"
+                                      th:text="${iter.count}"></span>
+                                <div>
+                                    <h6 class="mb-2 fw-semibold" th:text="${zone.name}"></h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <h6 class="mb-2">Available Vehicle Categories</h6>
+                            <div class="d-flex flex-wrap gap-3">
+                                <th:block th:if="${categories.isEmpty()}">
+                                    <span class="text-muted small">No vehicle categories available</span>
+                                </th:block>
+                                <div th:each="cat : ${categories}" class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-check-circle-fill text-primary"></i>
+                                    <span th:text="${cat.name}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a th:href="@{'/admin/fare/trip/' + ${zone.id} + '/setup'}"
+                               class="btn btn-primary">
+                                <i class="bi bi-gear-fill"></i> View / Setup Fare
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

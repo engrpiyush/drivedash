@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Edit Banner')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Edit Banner</h2>
+        <a th:href="@{/admin/promotion/banners}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="text-primary text-uppercase mb-4">Update Banner</h5>
+            <form th:action="@{'/admin/promotion/banners/' + ${banner.id}}" method="post"
+                  enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Banner Name</label>
+                        <input type="text" class="form-control" name="name"
+                               th:value="${banner.name}" required/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Redirect Link</label>
+                        <input type="text" class="form-control" name="redirectLink"
+                               th:value="${banner.redirectLink}" required/>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Display Position</label>
+                        <select name="displayPosition" class="form-select">
+                            <option value="">Select</option>
+                            <option value="top" th:selected="${banner.displayPosition == 'top'}">Top</option>
+                            <option value="middle" th:selected="${banner.displayPosition == 'middle'}">Middle</option>
+                            <option value="bottom" th:selected="${banner.displayPosition == 'bottom'}">Bottom</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Banner Group</label>
+                        <input type="text" class="form-control" name="bannerGroup"
+                               th:value="${banner.bannerGroup}"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Short Description</label>
+                        <input type="text" class="form-control" name="description"
+                               th:value="${banner.description}"/>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-center pt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="allTime" name="allTime"
+                                   th:checked="${banner.timePeriod == 'all_time'}"
+                                   onchange="toggleDates(this.checked)"/>
+                            <label class="form-check-label" for="allTime">All Time</label>
+                        </div>
+                    </div>
+                    <div class="col-md-3" id="startDateCol"
+                         th:style="${banner.timePeriod == 'all_time'} ? 'display:none' : ''">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" name="startDate" id="startDate"
+                               th:value="${banner.startDate}"/>
+                    </div>
+                    <div class="col-md-3" id="endDateCol"
+                         th:style="${banner.timePeriod == 'all_time'} ? 'display:none' : ''">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" name="endDate" id="endDate"
+                               th:value="${banner.endDate}"/>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Banner Image</label>
+                        <input type="file" class="form-control" name="imageFile" accept="image/*"/>
+                        <div class="mt-2" th:if="${banner.image}">
+                            <img th:src="@{'/uploads/' + ${banner.image}}" alt="Current"
+                                 style="height:60px;width:100px;object-fit:cover;" class="rounded border"/>
+                            <div class="form-text">Leave blank to keep current image</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4 gap-2">
+                    <a th:href="@{/admin/promotion/banners}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    function toggleDates(allTime) {
+        document.getElementById('startDateCol').style.display = allTime ? 'none' : '';
+        document.getElementById('endDateCol').style.display = allTime ? 'none' : '';
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Customers')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Customers</h2>
+        <div class="d-flex gap-2">
+            <a sec:authorize="hasRole('SUPER_ADMIN')"
+               th:href="@{/admin/customers/trashed}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-recycle"></i> Trashed
+            </a>
+            <a th:href="@{/admin/customers/create}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus"></i> Add Customer
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Status filter -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'all'} ? 'active'"
+                                th:href="@{/admin/customers(status='all')}">All</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'active'} ? 'active'"
+                                th:href="@{/admin/customers(status='active')}">Active</a></li>
+        <li class="nav-item"><a class="nav-link" th:classappend="${status == 'inactive'} ? 'active'"
+                                th:href="@{/admin/customers(status='inactive')}">Inactive</a></li>
+    </ul>
+
+    <!-- Search -->
+    <form th:action="@{/admin/customers}" method="get" class="d-flex gap-2 mb-3">
+        <input type="hidden" name="status" th:value="${status}"/>
+        <input type="text" name="search" class="form-control w-auto"
+               th:value="${search}" placeholder="Search name / email / phone..."/>
+        <button class="btn btn-outline-primary">Search</button>
+    </form>
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <div class="mb-2 text-muted">Total: <strong class="text-primary"
+                    th:text="${customers.totalElements}">0</strong></div>
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email / Phone</th>
+                    <th>Level</th>
+                    <th>Loyalty Pts</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c, iter : ${customers.content}">
+                    <td th:text="${customers.number * customers.size + iter.count}"></td>
+                    <td>
+                        <div th:text="${c.fullName != null ? c.fullName : c.firstName + ' ' + (c.lastName ?: '')}"></div>
+                    </td>
+                    <td>
+                        <div th:text="${c.email}"></div>
+                        <small class="text-muted" th:text="${c.phone}"></small>
+                    </td>
+                    <td th:text="${c.userLevelId != null ? c.userLevelId : '—'}"></td>
+                    <td th:text="${c.loyaltyPoints}"></td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" th:checked="${c.active}"
+                                   th:data-href="@{/admin/customers/status(id=${c.id},status=${!c.active},currentStatus=${status})}"
+                                   onclick="window.location=this.dataset.href"/>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <a th:href="@{'/admin/customers/' + ${c.id} + '/edit'}"
+                               class="btn btn-sm btn-outline-info"><i class="bi bi-pencil-fill"></i></a>
+                            <form th:action="@{'/admin/customers/' + ${c.id} + '/delete'}"
+                                  method="post" class="d-inline">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete this customer?')">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${customers.content.isEmpty()}">
+                    <td colspan="7" class="text-center text-muted py-4">No customers found.</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <nav th:if="${customers.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${customers.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/customers(status=${status},search=${search},page=${customers.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, customers.totalPages - 1)}"
+                        th:classappend="${i == customers.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/customers(status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${customers.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/customers(status=${status},search=${search},page=${customers.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+</body>
+</html>

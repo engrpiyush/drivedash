@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Trip List')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Trip List</h2>
+        <div class="d-flex gap-2">
+            <a sec:authorize="hasRole('SUPER_ADMIN')"
+               th:href="@{/admin/trips/trashed}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-recycle"></i> Trashed
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Status count badges -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2" th:each="entry : ${counts}">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="fs-4 fw-bold text-primary" th:text="${entry.value}">0</div>
+                    <div class="text-muted small text-capitalize" th:text="${entry.key}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Type + status filter tabs -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${type == 'all'} ? 'active'"
+               th:href="@{/admin/trips(type='all',status=${status})}">All Types</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${type == 'ride'} ? 'active'"
+               th:href="@{/admin/trips(type='ride',status=${status})}">Ride</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:classappend="${type == 'parcel'} ? 'active'"
+               th:href="@{/admin/trips(type='parcel',status=${status})}">Parcel</a>
+        </li>
+    </ul>
+
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item" th:each="s : ${ {'all','pending','accepted','ongoing','completed','cancelled'} }">
+            <a class="nav-link" th:classappend="${status == s} ? 'active'"
+               th:href="@{/admin/trips(type=${type},status=${s})}"
+               th:text="${#strings.capitalize(s)}"></a>
+        </li>
+    </ul>
+
+    <div class="card">
+        <div class="card-body">
+            <!-- Search bar -->
+            <form th:action="@{/admin/trips}" method="get" class="d-flex gap-2 mb-3">
+                <input type="hidden" name="type" th:value="${type}"/>
+                <input type="hidden" name="status" th:value="${status}"/>
+                <input type="text" class="form-control" name="search" th:value="${search}"
+                       placeholder="Search by Trip ID..."/>
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">
+                    Total: <strong class="text-primary" th:text="${trips.totalElements}">0</strong>
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Trip ID</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Driver</th>
+                        <th>Type</th>
+                        <th>Actual Fare</th>
+                        <th>Paid Fare</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="trip, iter : ${trips.content}">
+                        <td th:text="${trips.number * trips.size + iter.count}"></td>
+                        <td>
+                            <a th:href="@{'/admin/trips/' + ${trip.id}}"
+                               th:text="${trip.refId}" class="fw-semibold"></a>
+                        </td>
+                        <td th:text="${#temporals.format(trip.createdAt, 'dd MMM yyyy, hh:mm a')}"></td>
+                        <td>
+                            <span th:if="${trip.customer != null}"
+                                  th:text="${trip.customer.firstName + ' ' + trip.customer.lastName}"></span>
+                            <span th:if="${trip.customer == null}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <span th:if="${trip.driver != null}"
+                                  th:text="${trip.driver.firstName + ' ' + trip.driver.lastName}"></span>
+                            <span th:if="${trip.driver == null}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${trip.type == 'parcel'} ? 'bg-info' : 'bg-primary'"
+                                  th:text="${trip.type}"></span>
+                        </td>
+                        <td th:text="${trip.actualFare}"></td>
+                        <td th:text="${trip.paidFare}"></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${trip.paymentStatus == 'paid'} ? 'bg-success' : 'bg-warning text-dark'"
+                                  th:text="${trip.paymentStatus}"></span>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${trip.currentStatus == 'completed'} ? 'bg-success' :
+                                                 (${trip.currentStatus == 'cancelled'} ? 'bg-danger' :
+                                                 (${trip.currentStatus == 'ongoing'} ? 'bg-primary' : 'bg-warning text-dark'))"
+                                  th:text="${trip.currentStatus}"></span>
+                        </td>
+                        <td class="text-center">
+                            <a th:href="@{'/admin/trips/' + ${trip.id}}"
+                               class="btn btn-sm btn-outline-info" title="View">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr th:if="${trips.content.isEmpty()}">
+                        <td colspan="11" class="text-center text-muted py-4">No trips found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${trips.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${trips.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/trips(type=${type},status=${status},search=${search},page=${trips.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, trips.totalPages - 1)}"
+                        th:classappend="${i == trips.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/trips(type=${type},status=${status},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${trips.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/trips(type=${type},status=${status},search=${search},page=${trips.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+</body>
+</html>

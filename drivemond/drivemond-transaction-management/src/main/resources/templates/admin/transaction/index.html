@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Transactions')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Transaction Ledger</h2>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/admin/transactions}" method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Account Type</label>
+                    <select name="account" class="form-select">
+                        <option value="all" th:selected="${account == 'all'}">All Accounts</option>
+                        <option value="wallet_balance" th:selected="${account == 'wallet_balance'}">Wallet Balance</option>
+                        <option value="receivable_balance" th:selected="${account == 'receivable_balance'}">Receivable Balance</option>
+                        <option value="payable_balance" th:selected="${account == 'payable_balance'}">Payable Balance</option>
+                        <option value="received_balance" th:selected="${account == 'received_balance'}">Received Balance</option>
+                        <option value="pending_balance" th:selected="${account == 'pending_balance'}">Pending Balance</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Transaction Type</label>
+                    <select name="attribute" class="form-select">
+                        <option value="all" th:selected="${attribute == 'all'}">All Types</option>
+                        <option value="fund_by_admin" th:selected="${attribute == 'fund_by_admin'}">Fund by Admin</option>
+                        <option value="driver_earning" th:selected="${attribute == 'driver_earning'}">Driver Earning</option>
+                        <option value="admin_commission" th:selected="${attribute == 'admin_commission'}">Admin Commission</option>
+                        <option value="wallet_payment" th:selected="${attribute == 'wallet_payment'}">Wallet Payment</option>
+                        <option value="withdraw_requested" th:selected="${attribute == 'withdraw_requested'}">Withdraw Requested</option>
+                        <option value="withdraw_request_accepted" th:selected="${attribute == 'withdraw_request_accepted'}">Withdraw Accepted</option>
+                        <option value="admin_cash_collect" th:selected="${attribute == 'admin_cash_collect'}">Cash Collect</option>
+                        <option value="level_reward" th:selected="${attribute == 'level_reward'}">Level Reward</option>
+                        <option value="point_conversion" th:selected="${attribute == 'point_conversion'}">Point Conversion</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control"
+                           th:value="${search}" placeholder="Search by type or account..."/>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <span class="text-muted">
+                    Total: <strong class="text-primary" th:text="${transactions.totalElements}">0</strong>
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Ref ID</th>
+                        <th>Date</th>
+                        <th>User</th>
+                        <th>Account</th>
+                        <th>Type</th>
+                        <th class="text-end">Credit</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Balance</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="txn, iter : ${transactions.content}">
+                        <td th:text="${transactions.number * transactions.size + iter.count}"></td>
+                        <td>
+                            <code class="small" th:text="${txn.id}"></code>
+                        </td>
+                        <td th:text="${#temporals.format(txn.createdAt, 'dd MMM yyyy HH:mm')}"></td>
+                        <td>
+                            <span th:if="${txn.user != null}">
+                                <span th:text="${txn.user.firstName + ' ' + (txn.user.lastName ?: '')}"></span>
+                                <div class="text-muted small" th:text="${txn.user.email}"></div>
+                            </span>
+                            <span th:unless="${txn.user != null}" class="text-muted">—</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary text-capitalize"
+                                  th:text="${txn.account != null ? txn.account.replace('_', ' ') : '—'}"></span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark text-capitalize"
+                                  th:text="${txn.attribute != null ? txn.attribute.replace('_', ' ') : '—'}"></span>
+                        </td>
+                        <td class="text-end text-success fw-semibold"
+                            th:text="${txn.credit.compareTo(java.math.BigDecimal.ZERO) > 0 ? '+' + #numbers.formatDecimal(txn.credit, 1, 2) : '—'}"></td>
+                        <td class="text-end text-danger fw-semibold"
+                            th:text="${txn.debit.compareTo(java.math.BigDecimal.ZERO) > 0 ? '-' + #numbers.formatDecimal(txn.debit, 1, 2) : '—'}"></td>
+                        <td class="text-end fw-semibold"
+                            th:text="${#numbers.formatDecimal(txn.balance, 1, 2)}"></td>
+                    </tr>
+                    <tr th:if="${transactions.content.isEmpty()}">
+                        <td colspan="9" class="text-center text-muted py-4">No transactions found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <nav th:if="${transactions.totalPages > 1}">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item" th:classappend="${transactions.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/transactions(account=${account},attribute=${attribute},search=${search},page=${transactions.number - 1})}">&laquo;</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, transactions.totalPages - 1)}"
+                        th:classappend="${i == transactions.number} ? 'active'">
+                        <a class="page-link" th:text="${i + 1}"
+                           th:href="@{/admin/transactions(account=${account},attribute=${attribute},search=${search},page=${i})}"></a>
+                    </li>
+                    <li class="page-item" th:classappend="${transactions.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/transactions(account=${account},attribute=${attribute},search=${search},page=${transactions.number + 1})}">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</main>
+</body>
+</html>

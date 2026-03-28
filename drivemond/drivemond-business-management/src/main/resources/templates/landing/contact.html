@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/landing :: layout('Contact Us', ~{::body})}">
+<body>
+
+<!-- Page banner -->
+<section class="py-5" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff;">
+    <div class="container">
+        <h1 class="fw-bold mb-1">Contact Us</h1>
+        <p class="lead mb-0 opacity-75">We would love to hear from you.</p>
+    </div>
+</section>
+
+<!-- Contact info cards -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+
+            <!-- Email -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 mx-auto mb-3 d-flex align-items-center justify-content-center"
+                         style="width: 64px; height: 64px;">
+                        <i class="bi bi-envelope-fill fs-3 text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Email</h5>
+                    <th:block th:each="info : ${businessInfo}">
+                        <p th:if="${info.keyName == 'business_contact_email'}"
+                           class="text-muted mb-0"
+                           th:text="${info.value != null and info.value['v'] != null} ? ${info.value['v']} : '—'">
+                            —
+                        </p>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="rounded-circle bg-success bg-opacity-10 mx-auto mb-3 d-flex align-items-center justify-content-center"
+                         style="width: 64px; height: 64px;">
+                        <i class="bi bi-telephone-fill fs-3 text-success"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Phone</h5>
+                    <th:block th:each="info : ${businessInfo}">
+                        <p th:if="${info.keyName == 'business_contact_phone'}"
+                           class="text-muted mb-0"
+                           th:text="${info.value != null and info.value['v'] != null} ? ${info.value['v']} : '—'">
+                            —
+                        </p>
+                    </th:block>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-4">
+                    <div class="rounded-circle bg-warning bg-opacity-10 mx-auto mb-3 d-flex align-items-center justify-content-center"
+                         style="width: 64px; height: 64px;">
+                        <i class="bi bi-geo-alt-fill fs-3 text-warning"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Address</h5>
+                    <th:block th:each="info : ${businessInfo}">
+                        <p th:if="${info.keyName == 'business_address'}"
+                           class="text-muted mb-0"
+                           th:text="${info.value != null and info.value['v'] != null} ? ${info.value['v']} : '—'">
+                            —
+                        </p>
+                    </th:block>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layouts/admin :: head('Trashed Parcel Categories')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Trashed Parcel Categories</h2>
+        <a th:href="@{/admin/parcel/categories}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Icon</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Deleted At</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="cat, iter : ${categories}">
+                        <td th:text="${iter.count}"></td>
+                        <td>
+                            <img th:src="@{'/uploads/' + ${cat.image}}" alt="icon"
+                                 style="height:40px;width:40px;object-fit:cover;" class="rounded"/>
+                        </td>
+                        <td th:text="${cat.name}"></td>
+                        <td th:text="${cat.description}"></td>
+                        <td th:text="${#temporals.format(cat.deletedAt, 'dd MMM yyyy HH:mm')}"></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:href="@{'/admin/parcel/categories/' + ${cat.id} + '/restore'}"
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restore
+                                </a>
+                                <form th:action="@{'/admin/parcel/categories/' + ${cat.id} + '/permanent'}"
+                                      method="post" class="d-inline">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Permanently delete this category? This cannot be undone.')">
+                                        <i class="bi bi-trash-fill"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${categories.isEmpty()}">
+                        <td colspan="6" class="text-center text-muted py-4">No trashed categories.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>
