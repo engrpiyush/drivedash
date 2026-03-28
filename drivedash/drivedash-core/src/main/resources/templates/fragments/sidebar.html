@@ -29,9 +29,10 @@
                     </a>
                 </li>
 
+                <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">User Management</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <a class="nav-link text-white" th:href="@{/admin/customers}">
-                        <i class="bi bi-people me-1"></i> Users
+                        <i class="bi bi-people me-1"></i> Customers
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
@@ -39,7 +40,43 @@
                         <i class="bi bi-person-badge me-1"></i> Drivers
                     </a>
                 </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-white" th:href="@{/admin/employees}">
+                        <i class="bi bi-person-workspace me-1"></i> Employees
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/employees}">
+                        <i class="bi bi-dash me-1"></i> Employee List
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/employees/roles}">
+                        <i class="bi bi-dash me-1"></i> Roles
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-white" th:href="@{/admin/user-levels}">
+                        <i class="bi bi-layers me-1"></i> User Levels
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-white" th:href="@{/admin/withdraw/methods}">
+                        <i class="bi bi-cash-coin me-1"></i> Withdrawals
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/withdraw/methods}">
+                        <i class="bi bi-dash me-1"></i> Methods
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/withdraw/requests}">
+                        <i class="bi bi-dash me-1"></i> Requests
+                    </a>
+                </li>
 
+                <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Operations</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
                     <a class="nav-link text-white" th:href="@{/admin/vehicles}">
                         <i class="bi bi-car-front me-1"></i> Vehicles
@@ -63,22 +100,54 @@
                         <i class="bi bi-box-seam me-1"></i> Parcels
                     </a>
                 </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/parcel/categories}">
+                        <i class="bi bi-dash me-1"></i> Categories
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/parcel/weights}">
+                        <i class="bi bi-dash me-1"></i> Weights
+                    </a>
+                </li>
 
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
                     <a class="nav-link text-white" th:href="@{/admin/fare/trip}">
                         <i class="bi bi-currency-dollar me-1"></i> Fares
                     </a>
                 </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/fare/trip}">
+                        <i class="bi bi-dash me-1"></i> Trip Fare
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/fare/parcel}">
+                        <i class="bi bi-dash me-1"></i> Parcel Fare
+                    </a>
+                </li>
 
+                <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Finance</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <a class="nav-link text-white" th:href="@{/admin/transactions}">
                         <i class="bi bi-credit-card me-1"></i> Transactions
                     </a>
                 </li>
 
+                <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Marketing</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
                     <a class="nav-link text-white" th:href="@{/admin/promotion/coupons}">
                         <i class="bi bi-gift me-1"></i> Promotions
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/promotion/banners}">
+                        <i class="bi bi-dash me-1"></i> Banners
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/promotion/coupons}">
+                        <i class="bi bi-dash me-1"></i> Coupons
                     </a>
                 </li>
 
@@ -94,9 +163,35 @@
                     </a>
                 </li>
 
+                <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">System</li>
                 <li class="nav-item" sec:authorize="hasRole('SUPER_ADMIN')">
                     <a class="nav-link text-white" th:href="@{/admin/business/configuration/payment-gateways}">
                         <i class="bi bi-bank me-1"></i> Gateways
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('SUPER_ADMIN')">
+                    <a class="nav-link text-white" th:href="@{/admin/business/setup/info}">
+                        <i class="bi bi-briefcase me-1"></i> Business Setup
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info}">
+                        <i class="bi bi-dash me-1"></i> Info
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info/settings}">
+                        <i class="bi bi-dash me-1"></i> Settings
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/business/configuration/notification}">
+                        <i class="bi bi-dash me-1"></i> Notifications
+                    </a>
+                </li>
+                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
+                    <a class="nav-link text-secondary" th:href="@{/admin/business/pages-media/social-media}">
+                        <i class="bi bi-dash me-1"></i> Pages & Media
                     </a>
                 </li>
 
