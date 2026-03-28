@@ -1,21 +1,17 @@
 package com.drivedash.admin.aspect;
 
 import com.drivedash.admin.service.ActivityLogRecorder;
-import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * Captures mutation activity for controller endpoints (POST/PUT/PATCH/DELETE).
+ * Captures mutation activity for service-layer write operations and stores
+ * entity snapshots (before/after) for diff-friendly activity logs.
  */
 @Aspect
 @Component
@@ -24,49 +20,67 @@ public class ActivityLoggingAspect {
 
     private final ActivityLogRecorder recorder;
 
-    @Around("(@within(org.springframework.stereotype.Controller) || @within(org.springframework.web.bind.annotation.RestController))"
-            + " && ("
-            + "@annotation(org.springframework.web.bind.annotation.PostMapping)"
-            + " || @annotation(org.springframework.web.bind.annotation.PutMapping)"
-            + " || @annotation(org.springframework.web.bind.annotation.PatchMapping)"
-            + " || @annotation(org.springframework.web.bind.annotation.DeleteMapping)"
-            + ")")
+    @Around(
+            "execution(* com.drivedash..service..*.create*(..)) || " +
+            "execution(* com.drivedash..service..*.update*(..)) || " +
+            "execution(* com.drivedash..service..*.delete*(..)) || " +
+            "execution(* com.drivedash..service..*.toggle*(..)) || " +
+            "execution(* com.drivedash..service..*.approve*(..)) || " +
+            "execution(* com.drivedash..service..*.process*(..)) || " +
+            "execution(* com.drivedash..service..*.store*(..))"
+    )
     public Object logMutation(ProceedingJoinPoint joinPoint) throws Throwable {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
-
-        Map<String, Object> before = new LinkedHashMap<>();
-        before.put("method", request != null ? request.getMethod() : null);
-        before.put("path", request != null ? request.getRequestURI() : null);
-        before.put("operation", joinPoint.getSignature().toShortString());
+        UUID idArg = resolveUuidArg(joinPoint.getArgs());
+        Object before = tryLoadCurrentState(joinPoint.getTarget(), idArg);
+        String methodName = joinPoint.getSignature().getName().toLowerCase();
 
         Object result = joinPoint.proceed();
 
-        Map<String, Object> after = new LinkedHashMap<>();
-        after.put("method", request != null ? request.getMethod() : null);
-        after.put("path", request != null ? request.getRequestURI() : null);
-        after.put("result", summarize(result));
+        Object after = null;
+        if (!methodName.startsWith("delete")) {
+            after = result != null ? unwrapResponseBody(result) : tryLoadCurrentState(joinPoint.getTarget(), idArg);
+        }
 
-        UUID entityId = resolveEntityId(joinPoint.getArgs(), result);
-        String logableType = resolveLogableType(joinPoint, request);
+        UUID entityId = resolveEntityId(idArg, before, after, result);
+        String logableType = resolveLogableType(before, after, joinPoint.getTarget().getClass().getSimpleName());
         recorder.recordForCurrentUser(logableType, entityId, before, after);
         return result;
     }
 
-    private UUID resolveEntityId(Object[] args, Object result) {
+    private UUID resolveEntityId(UUID idArg, Object before, Object after, Object result) {
+        if (idArg != null) {
+            return idArg;
+        }
+        UUID fromBefore = tryResolveFromObject(before);
+        if (fromBefore != null) {
+            return fromBefore;
+        }
+        UUID fromAfter = tryResolveFromObject(after);
+        if (fromAfter != null) {
+            return fromAfter;
+        }
+        return tryResolveFromObject(unwrapResponseBody(result));
+    }
+
+    private UUID resolveUuidArg(Object[] args) {
         for (Object arg : args) {
             if (arg instanceof UUID uuid) {
                 return uuid;
             }
         }
-        UUID fromResult = tryResolveFromObject(result);
-        if (fromResult != null) {
-            return fromResult;
-        }
-        if (result instanceof org.springframework.http.ResponseEntity<?> response) {
-            return tryResolveFromObject(response.getBody());
-        }
         return null;
+    }
+
+    private Object tryLoadCurrentState(Object target, UUID id) {
+        if (id == null || target == null) {
+            return null;
+        }
+        try {
+            Method m = target.getClass().getMethod("findById", UUID.class);
+            return m.invoke(target, id);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private UUID tryResolveFromObject(Object candidate) {
@@ -88,24 +102,25 @@ public class ActivityLoggingAspect {
         return null;
     }
 
-    private String resolveLogableType(ProceedingJoinPoint joinPoint, HttpServletRequest request) {
-        String controllerName = joinPoint.getTarget().getClass().getSimpleName();
-        if (controllerName.endsWith("Controller")) {
-            controllerName = controllerName.substring(0, controllerName.length() - "Controller".length());
+    private String resolveLogableType(Object before, Object after, String fallbackSource) {
+        Object sample = after != null ? after : before;
+        if (sample != null) {
+            String type = sample.getClass().getSimpleName();
+            if (!type.isBlank()) {
+                return type;
+            }
         }
-        if (controllerName.isBlank() && request != null) {
-            return request.getRequestURI();
+        String type = fallbackSource;
+        if (type.endsWith("Service")) {
+            type = type.substring(0, type.length() - "Service".length());
         }
-        return controllerName;
+        return type;
     }
 
-    private Object summarize(Object value) {
-        if (value == null) {
-            return null;
+    private Object unwrapResponseBody(Object result) {
+        if (result instanceof org.springframework.http.ResponseEntity<?> response) {
+            return response.getBody();
         }
-        if (value instanceof CharSequence || value instanceof Number || value instanceof Boolean) {
-            return value;
-        }
-        return value.getClass().getSimpleName();
+        return result;
     }
 }
