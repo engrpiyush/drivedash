@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layouts/admin :: head('Business Settings')}"></head>
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Business Settings</h2>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/admin/business/setup/info/update-settings}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+        <div class="card mb-4">
+            <div class="card-header">Core Settings</div>
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Trip Commission (%)</label>
+                    <input type="number" step="0.1" min="0" name="trip_commission" class="form-control"
+                           th:value="${settings?.?[keyName == 'trip_commission']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">VAT (%)</label>
+                    <input type="number" step="0.1" min="0" name="vat_percent" class="form-control"
+                           th:value="${settings?.?[keyName == 'vat_percent']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Search Radius (km)</label>
+                    <input type="number" step="0.1" min="0" name="search_radius" class="form-control"
+                           th:value="${settings?.?[keyName == 'search_radius']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Driver Completion Radius (m)</label>
+                    <input type="number" step="0.1" min="0" name="driver_completion_radius" class="form-control"
+                           th:value="${settings?.?[keyName == 'driver_completion_radius']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Websocket Port</label>
+                    <input type="number" min="0" name="websocket_port" class="form-control"
+                           th:value="${settings?.?[keyName == 'websocket_port']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Pagination Limit</label>
+                    <input type="number" min="1" name="pagination_limit" class="form-control"
+                           th:value="${settings?.?[keyName == 'pagination_limit']?.get(0)?.value?.get('v')}"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Security & OTP</div>
+            <div class="card-body row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Maximum Login Attempt</label>
+                    <input type="number" min="1" name="maximum_login_hit" class="form-control"
+                           th:value="${settings?.?[keyName == 'maximum_login_hit']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Temporary Login Block Time (s)</label>
+                    <input type="number" min="1" name="temporary_login_block_time" class="form-control"
+                           th:value="${settings?.?[keyName == 'temporary_login_block_time']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Maximum OTP Attempt</label>
+                    <input type="number" min="1" name="maximum_otp_hit" class="form-control"
+                           th:value="${settings?.?[keyName == 'maximum_otp_hit']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">OTP Resend Time (s)</label>
+                    <input type="number" min="1" name="otp_resend_time" class="form-control"
+                           th:value="${settings?.?[keyName == 'otp_resend_time']?.get(0)?.value?.get('v')}"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Temporary OTP Block Time (s)</label>
+                    <input type="number" min="1" name="temporary_block_time" class="form-control"
+                           th:value="${settings?.?[keyName == 'temporary_block_time']?.get(0)?.value?.get('v')}"/>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Ride Configuration</div>
+            <div class="card-body">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="bid_on_fare" id="bidOnFare"
+                           th:checked="${settings?.?[keyName == 'bid_on_fare']?.get(0)?.value?.get('v') == 1
+                                        or settings?.?[keyName == 'bid_on_fare']?.get(0)?.value?.get('v') == '1'
+                                        or settings?.?[keyName == 'bid_on_fare']?.get(0)?.value?.get('v') == true}"/>
+                    <label class="form-check-label" for="bidOnFare">Bid on Fare</label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </form>
+
+</main>
+</body>
+</html>

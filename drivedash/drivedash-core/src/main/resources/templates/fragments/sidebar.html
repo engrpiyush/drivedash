@@ -41,40 +41,52 @@
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-white" th:href="@{/admin/employees}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuEmployees" role="button"
+                       aria-expanded="false" aria-controls="submenuEmployees">
                         <i class="bi bi-person-workspace me-1"></i> Employees
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/employees}">
-                        <i class="bi bi-dash me-1"></i> Employee List
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/employees/roles}">
-                        <i class="bi bi-dash me-1"></i> Roles
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuEmployees"
+                    sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/employees}">
+                            <i class="bi bi-dash me-1"></i> Employee List
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/employees/roles}">
+                            <i class="bi bi-dash me-1"></i> Roles
+                        </a>
+                    </li>
+                </ul>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <a class="nav-link text-white" th:href="@{/admin/user-levels}">
                         <i class="bi bi-layers me-1"></i> User Levels
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-white" th:href="@{/admin/withdraw/methods}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuWithdrawals" role="button"
+                       aria-expanded="false" aria-controls="submenuWithdrawals">
                         <i class="bi bi-cash-coin me-1"></i> Withdrawals
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/withdraw/methods}">
-                        <i class="bi bi-dash me-1"></i> Methods
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/withdraw/requests}">
-                        <i class="bi bi-dash me-1"></i> Requests
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuWithdrawals"
+                    sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/withdraw/methods}">
+                            <i class="bi bi-dash me-1"></i> Methods
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/withdraw/requests}">
+                            <i class="bi bi-dash me-1"></i> Requests
+                        </a>
+                    </li>
+                </ul>
 
                 <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Operations</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
@@ -96,36 +108,48 @@
                 </li>
 
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-white" th:href="@{/admin/parcel/categories}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuParcels" role="button"
+                       aria-expanded="false" aria-controls="submenuParcels">
                         <i class="bi bi-box-seam me-1"></i> Parcels
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/parcel/categories}">
-                        <i class="bi bi-dash me-1"></i> Categories
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/parcel/weights}">
-                        <i class="bi bi-dash me-1"></i> Weights
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuParcels"
+                    sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/parcel/categories}">
+                            <i class="bi bi-dash me-1"></i> Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/parcel/weights}">
+                            <i class="bi bi-dash me-1"></i> Weights
+                        </a>
+                    </li>
+                </ul>
 
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-white" th:href="@{/admin/fare/trip}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuFares" role="button"
+                       aria-expanded="false" aria-controls="submenuFares">
                         <i class="bi bi-currency-dollar me-1"></i> Fares
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/fare/trip}">
-                        <i class="bi bi-dash me-1"></i> Trip Fare
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/fare/parcel}">
-                        <i class="bi bi-dash me-1"></i> Parcel Fare
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuFares"
+                    sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/fare/trip}">
+                            <i class="bi bi-dash me-1"></i> Trip Fare
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/fare/parcel}">
+                            <i class="bi bi-dash me-1"></i> Parcel Fare
+                        </a>
+                    </li>
+                </ul>
 
                 <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Finance</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
@@ -136,20 +160,26 @@
 
                 <li class="nav-item mt-2 px-3 text-uppercase text-secondary small fw-semibold">Marketing</li>
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-white" th:href="@{/admin/promotion/coupons}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuPromotions" role="button"
+                       aria-expanded="false" aria-controls="submenuPromotions">
                         <i class="bi bi-gift me-1"></i> Promotions
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/promotion/banners}">
-                        <i class="bi bi-dash me-1"></i> Banners
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/promotion/coupons}">
-                        <i class="bi bi-dash me-1"></i> Coupons
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuPromotions"
+                    sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/promotion/banners}">
+                            <i class="bi bi-dash me-1"></i> Banners
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/promotion/coupons}">
+                            <i class="bi bi-dash me-1"></i> Coupons
+                        </a>
+                    </li>
+                </ul>
 
                 <li class="nav-item" sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <a class="nav-link text-white" th:href="@{/admin/reviews}">
@@ -170,30 +200,36 @@
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('SUPER_ADMIN')">
-                    <a class="nav-link text-white" th:href="@{/admin/business/setup/info}">
+                    <a class="nav-link text-white d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse" href="#submenuBusinessSetup" role="button"
+                       aria-expanded="false" aria-controls="submenuBusinessSetup">
                         <i class="bi bi-briefcase me-1"></i> Business Setup
+                        <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info}">
-                        <i class="bi bi-dash me-1"></i> Info
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info/settings}">
-                        <i class="bi bi-dash me-1"></i> Settings
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/business/configuration/notification}">
-                        <i class="bi bi-dash me-1"></i> Notifications
-                    </a>
-                </li>
-                <li class="nav-item ms-3" sec:authorize="hasRole('SUPER_ADMIN')">
-                    <a class="nav-link text-secondary" th:href="@{/admin/business/pages-media/social-media}">
-                        <i class="bi bi-dash me-1"></i> Pages & Media
-                    </a>
-                </li>
+                <ul class="collapse list-unstyled ms-3" id="submenuBusinessSetup"
+                    sec:authorize="hasRole('SUPER_ADMIN')">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info}">
+                            <i class="bi bi-dash me-1"></i> Info
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info/settings}">
+                            <i class="bi bi-dash me-1"></i> Settings
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/business/configuration/notification}">
+                            <i class="bi bi-dash me-1"></i> Notifications
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" th:href="@{/admin/business/pages-media/social-media}">
+                            <i class="bi bi-dash me-1"></i> Pages & Media
+                        </a>
+                    </li>
+                </ul>
 
                 <li class="nav-item" sec:authorize="hasRole('SUPER_ADMIN')">
                     <a class="nav-link text-white" th:href="@{/admin/settings}">
