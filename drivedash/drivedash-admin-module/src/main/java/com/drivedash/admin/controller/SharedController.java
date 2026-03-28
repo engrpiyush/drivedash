@@ -21,14 +21,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Shared utility endpoints – notification dropdown and locale switching.
- * Mirrors Laravel's {@code SharedController}.
+ * Shared utility endpoints – notification dropdown, locale switching,
+ * and legacy URL redirects for backward compatibility.
  *
  * <p>Routes:
  * <ul>
  *   <li>GET /admin/get-notifications – JSON list of unseen notifications</li>
  *   <li>GET /admin/seen-notification  – marks a notification as seen</li>
  *   <li>GET /lang/{locale}            – switches the UI language</li>
+ *   <li>GET /admin/users              – redirect → /admin/customers</li>
+ *   <li>GET /admin/profile            – redirect → /admin/settings</li>
  * </ul>
  */
 @Controller
@@ -56,6 +58,28 @@ public class SharedController {
     public ResponseEntity<NotificationDto> seenNotification(@RequestParam Long id) {
         NotificationDto dto = notificationService.markSeen(id);
         return ResponseEntity.ok(dto);
+    }
+
+    // ── Legacy URL redirects ──────────────────────────────────────────────────
+
+    /**
+     * Backward-compatible redirect: /admin/users → /admin/customers.
+     * The sidebar previously linked to /admin/users; the actual controller
+     * is mounted at /admin/customers.
+     */
+    @GetMapping("/admin/users")
+    public String redirectUsers() {
+        return "redirect:/admin/customers";
+    }
+
+    /**
+     * Backward-compatible redirect: /admin/profile → /admin/settings.
+     * The sidebar previously linked to /admin/profile; the profile/settings
+     * page is served by AdminSettingController at /admin/settings.
+     */
+    @GetMapping("/admin/profile")
+    public String redirectProfile() {
+        return "redirect:/admin/settings";
     }
 
     /**
