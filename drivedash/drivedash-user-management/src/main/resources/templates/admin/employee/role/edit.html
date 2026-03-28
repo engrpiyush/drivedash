@@ -27,7 +27,7 @@
                 <div class="mb-3">
                     <label class="form-label">Module Access</label>
                     <div class="row g-2">
-                        <div class="col-sm-4 col-md-3" th:each="mod : ${allModules}">
+                        <div class="col-sm-4 col-md-3" th:each="mod : ${allModules ?: #lists.emptyList()}">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="modules"
                                        th:value="${mod}" th:id="${'mod_' + mod}"

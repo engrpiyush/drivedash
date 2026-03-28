@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -29,8 +30,14 @@ public class EmployeeRoleWebController {
 
     private final EmployeeService employeeService;
 
+    /** Automatically populate allModules for every request handled by this controller. */
+    @ModelAttribute("allModules")
+    public List<String> populateModules() {
+        return ALL_MODULES;
+    }
+
     @GetMapping
-    public String index(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+    public String index(@RequestParam(defaultValue = "0") int page,
                         Model model) {
         model.addAttribute("roles", employeeService.getRolePage(page, 15));
         return "admin/employee/role/index";
@@ -39,7 +46,6 @@ public class EmployeeRoleWebController {
     @GetMapping("/create")
     public String create(Model model) {
         model.addAttribute("req", new RoleRequest());
-        model.addAttribute("allModules", ALL_MODULES);
         return "admin/employee/role/create";
     }
 
@@ -47,7 +53,6 @@ public class EmployeeRoleWebController {
     public String store(@Valid @ModelAttribute("req") RoleRequest req,
                         BindingResult br, Model model, RedirectAttributes ra) {
         if (br.hasErrors()) {
-            model.addAttribute("allModules", ALL_MODULES);
             return "admin/employee/role/create";
         }
         try {
@@ -56,7 +61,6 @@ public class EmployeeRoleWebController {
             return "redirect:/admin/employees/roles";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("allModules", ALL_MODULES);
             return "admin/employee/role/create";
         }
     }
@@ -70,7 +74,6 @@ public class EmployeeRoleWebController {
         req.setActive(role.isActive());
         model.addAttribute("role", role);
         model.addAttribute("req", req);
-        model.addAttribute("allModules", ALL_MODULES);
         return "admin/employee/role/edit";
     }
 
@@ -79,7 +82,6 @@ public class EmployeeRoleWebController {
                          @Valid @ModelAttribute("req") RoleRequest req,
                          BindingResult br, Model model, RedirectAttributes ra) {
         if (br.hasErrors()) {
-            model.addAttribute("allModules", ALL_MODULES);
             model.addAttribute("role", employeeService.findRoleById(id));
             return "admin/employee/role/edit";
         }
@@ -89,7 +91,6 @@ public class EmployeeRoleWebController {
             return "redirect:/admin/employees/roles";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("allModules", ALL_MODULES);
             model.addAttribute("role", employeeService.findRoleById(id));
             return "admin/employee/role/edit";
         }
@@ -104,7 +105,7 @@ public class EmployeeRoleWebController {
 
     @GetMapping("/{id}/status")
     public String toggleStatus(@PathVariable UUID id,
-                                @org.springframework.web.bind.annotation.RequestParam boolean status) {
+                                @RequestParam boolean status) {
         employeeService.toggleRoleStatus(id, status);
         return "redirect:/admin/employees/roles";
     }
