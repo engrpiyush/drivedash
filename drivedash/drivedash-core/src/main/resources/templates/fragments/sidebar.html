@@ -44,11 +44,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuEmployees" role="button"
                        aria-expanded="false" aria-controls="submenuEmployees">
-                        <i class="bi bi-person-workspace me-1"></i> Employees
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-person-workspace me-1"></i> Employees
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuEmployees"
+                <ul class="collapse list-unstyled ms-2" id="submenuEmployees"
                     sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/employees}">
@@ -70,11 +72,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuWithdrawals" role="button"
                        aria-expanded="false" aria-controls="submenuWithdrawals">
-                        <i class="bi bi-cash-coin me-1"></i> Withdrawals
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-cash-coin me-1"></i> Withdrawals
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuWithdrawals"
+                <ul class="collapse list-unstyled ms-2" id="submenuWithdrawals"
                     sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/withdraw/methods}">
@@ -111,11 +115,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuParcels" role="button"
                        aria-expanded="false" aria-controls="submenuParcels">
-                        <i class="bi bi-box-seam me-1"></i> Parcels
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-box-seam me-1"></i> Parcels
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuParcels"
+                <ul class="collapse list-unstyled ms-2" id="submenuParcels"
                     sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN','EMPLOYEE')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/parcel/categories}">
@@ -133,11 +139,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuFares" role="button"
                        aria-expanded="false" aria-controls="submenuFares">
-                        <i class="bi bi-currency-dollar me-1"></i> Fares
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-currency-dollar me-1"></i> Fares
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuFares"
+                <ul class="collapse list-unstyled ms-2" id="submenuFares"
                     sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/fare/trip}">
@@ -163,11 +171,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuPromotions" role="button"
                        aria-expanded="false" aria-controls="submenuPromotions">
-                        <i class="bi bi-gift me-1"></i> Promotions
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-gift me-1"></i> Promotions
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuPromotions"
+                <ul class="collapse list-unstyled ms-2" id="submenuPromotions"
                     sec:authorize="hasAnyRole('SUPER_ADMIN','ADMIN')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/promotion/banners}">
@@ -203,11 +213,13 @@
                     <a class="nav-link text-white d-flex justify-content-between align-items-center"
                        data-bs-toggle="collapse" href="#submenuBusinessSetup" role="button"
                        aria-expanded="false" aria-controls="submenuBusinessSetup">
-                        <i class="bi bi-briefcase me-1"></i> Business Setup
+                        <span class="d-flex align-items-center">
+                            <i class="bi bi-briefcase me-1"></i> Business Setup
+                        </span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
                 </li>
-                <ul class="collapse list-unstyled ms-3" id="submenuBusinessSetup"
+                <ul class="collapse list-unstyled ms-2" id="submenuBusinessSetup"
                     sec:authorize="hasRole('SUPER_ADMIN')">
                     <li class="nav-item">
                         <a class="nav-link text-secondary" th:href="@{/admin/business/setup/info}">
