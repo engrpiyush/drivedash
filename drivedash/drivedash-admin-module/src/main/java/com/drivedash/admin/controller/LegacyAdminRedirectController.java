@@ -21,4 +21,29 @@ public class LegacyAdminRedirectController {
     public String profile() {
         return "redirect:/admin/settings";
     }
+
+    @GetMapping("/admin/parcels")
+    public String parcels() {
+        return "redirect:/admin/parcel/categories";
+    }
+
+    @GetMapping("/admin/fares")
+    public String fares() {
+        return "redirect:/admin/fare/trip";
+    }
+
+    @GetMapping("/admin/promotions")
+    public String promotions() {
+        return "redirect:/admin/promotion/coupons";
+    }
+
+    @GetMapping("/admin/chats")
+    public String chats() {
+        return "redirect:/admin/chatting";
+    }
+
+    @GetMapping("/admin/gateways")
+    public String gateways() {
+        return "redirect:/admin/business/configuration/payment-gateways";
+    }
 }
