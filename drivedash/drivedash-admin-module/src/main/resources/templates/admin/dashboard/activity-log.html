@@ -44,6 +44,7 @@
                     <tr>
                         <th>#</th>
                         <th>Entity</th>
+                        <th>Action</th>
                         <th>Entity ID</th>
                         <th>Edited By</th>
                         <th>User Type</th>
@@ -56,25 +57,36 @@
                         <td th:text="${logs.number * logs.size + iter.count}"></td>
                         <td th:text="${log.logableType}"></td>
                         <td>
-                            <code th:text="${log.logableId}"></code>
+                            <span class="badge"
+                                  th:classappend="${log.action == 'CREATE'} ? 'bg-success'
+                                                : (${log.action == 'DELETE'} ? 'bg-danger'
+                                                : (${log.action == 'LOGIN'} ? 'bg-primary'
+                                                : (${log.action == 'LOGOUT'} ? 'bg-secondary'
+                                                : 'bg-warning text-dark')))"
+                                  th:text="${log.action ?: '—'}">
+                            </span>
                         </td>
                         <td>
-                            <code th:text="${log.editedBy}"></code>
+                            <code th:text="${log.logableId ?: '—'}"></code>
                         </td>
                         <td>
-                            <span class="badge bg-secondary" th:text="${log.userType}"></span>
+                            <code th:text="${log.editedBy ?: '—'}"></code>
                         </td>
-                        <td th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td>
+                            <span class="badge bg-secondary" th:text="${log.userType ?: '—'}"></span>
+                        </td>
+                        <td th:text="${log.createdAt != null} ? ${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm')} : '—'"></td>
                         <td>
                             <button class="btn btn-sm btn-outline-info"
                                     data-bs-toggle="modal"
-                                    th:data-bs-target="${'#diffModal-' + log.id}">
-                                View Diff
+                                    th:data-bs-target="${'#diffModal-' + log.id}"
+                                    th:disabled="${log.beforeState == null and log.afterState == null}">
+                                View
                             </button>
                         </td>
                     </tr>
                     <tr th:if="${logs.isEmpty()}">
-                        <td colspan="7" class="text-center text-muted py-4">No log entries found.</td>
+                        <td colspan="8" class="text-center text-muted py-4">No log entries found.</td>
                     </tr>
                 </tbody>
             </table>
@@ -112,7 +124,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title"
-                            th:text="${'Changes – ' + log.logableType + ' @ ' + #temporals.format(log.createdAt,'yyyy-MM-dd HH:mm')}">
+                            th:text="${(log.action ?: '') + ' – ' + log.logableType + ' @ ' + (log.createdAt != null ? #temporals.format(log.createdAt,'yyyy-MM-dd HH:mm') : '')}">
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -120,12 +132,12 @@
                         <div class="col-6">
                             <h6 class="text-danger">Before</h6>
                             <pre class="bg-light p-2 rounded small"
-                                 th:text="${log.before}">–</pre>
+                                 th:text="${log.beforeState != null} ? ${log.beforeState} : '—'">–</pre>
                         </div>
                         <div class="col-6">
                             <h6 class="text-success">After</h6>
                             <pre class="bg-light p-2 rounded small"
-                                 th:text="${log.after}">–</pre>
+                                 th:text="${log.afterState != null} ? ${log.afterState} : '—'">–</pre>
                         </div>
                     </div>
                 </div>
