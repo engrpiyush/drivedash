@@ -5,6 +5,7 @@ import com.drivedash.auth.entity.User;
 import com.drivedash.auth.entity.UserType;
 import com.drivedash.auth.repository.RoleRepository;
 import com.drivedash.auth.repository.UserRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.usermanagement.dto.EmployeeRequest;
 import com.drivedash.usermanagement.dto.RoleRequest;
@@ -44,6 +45,7 @@ public class EmployeeService {
                 .orElseThrow(() -> DrivedashException.notFound("Employee not found"));
     }
 
+    @Auditable(entityClass = User.class, action = "CREATE")
     @Transactional
     public User create(EmployeeRequest req) {
         if (userRepository.existsByEmail(req.getEmail())) {
@@ -65,6 +67,7 @@ public class EmployeeService {
         return userRepository.save(user);
     }
 
+    @Auditable(entityClass = User.class, action = "UPDATE")
     @Transactional
     public User update(UUID id, EmployeeRequest req) {
         User user = findById(id);
@@ -84,11 +87,13 @@ public class EmployeeService {
         return userRepository.save(user);
     }
 
+    @Auditable(entityClass = User.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         userRepository.delete(findById(id));
     }
 
+    @Auditable(entityClass = User.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         User user = findById(id);
@@ -112,6 +117,7 @@ public class EmployeeService {
                 .orElseThrow(() -> DrivedashException.notFound("Role not found"));
     }
 
+    @Auditable(entityClass = Role.class, action = "CREATE")
     @Transactional
     public Role createRole(RoleRequest req) {
         if (roleRepository.existsByName(req.getName())) {
@@ -124,6 +130,7 @@ public class EmployeeService {
                 .build());
     }
 
+    @Auditable(entityClass = Role.class, action = "UPDATE")
     @Transactional
     public Role updateRole(UUID id, RoleRequest req) {
         Role role = findRoleById(id);
@@ -136,11 +143,13 @@ public class EmployeeService {
         return roleRepository.save(role);
     }
 
+    @Auditable(entityClass = Role.class, action = "DELETE")
     @Transactional
     public void deleteRole(UUID id) {
         roleRepository.delete(findRoleById(id));
     }
 
+    @Auditable(entityClass = Role.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleRoleStatus(UUID id, boolean active) {
         Role role = findRoleById(id);

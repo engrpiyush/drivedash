@@ -1,5 +1,6 @@
 package com.drivedash.faremanagement.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.faremanagement.dto.ParcelFareSetupRequest;
 import com.drivedash.faremanagement.entity.ParcelFare;
@@ -40,6 +41,7 @@ public class ParcelFareService {
         return parcelFareRepo.findByZoneId(zoneId).isPresent();
     }
 
+    @Auditable(entityClass = ParcelFare.class, action = "UPDATE")
     @Transactional
     public void setup(UUID zoneId, ParcelFareSetupRequest req) {
         ParcelFare fare = parcelFareRepo.findByZoneId(zoneId)
@@ -75,6 +77,7 @@ public class ParcelFareService {
                 .orElseThrow(() -> DrivedashException.notFound("Parcel fare not found"));
     }
 
+    @Auditable(entityClass = ParcelFare.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         parcelFareRepo.delete(findById(id));

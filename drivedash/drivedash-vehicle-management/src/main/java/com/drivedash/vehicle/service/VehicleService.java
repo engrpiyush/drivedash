@@ -1,6 +1,7 @@
 package com.drivedash.vehicle.service;
 
 import com.drivedash.auth.repository.UserRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.vehicle.dto.VehicleRequest;
@@ -27,6 +28,7 @@ public class VehicleService {
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
 
+    @Auditable(entityClass = Vehicle.class, action = "CREATE")
     public Vehicle create(VehicleRequest request) {
         if (vehicleRepository.existsByDriverId(request.getDriverId())) {
             throw DrivedashException.conflict("Driver already has a vehicle assigned");
@@ -51,6 +53,7 @@ public class VehicleService {
         return vehicleRepository.save(vehicle);
     }
 
+    @Auditable(entityClass = Vehicle.class, action = "UPDATE")
     public Vehicle update(UUID id, VehicleRequest request) {
         Vehicle vehicle = findById(id);
         if (vehicleRepository.existsByDriverIdAndIdNot(request.getDriverId(), id)) {
@@ -86,11 +89,13 @@ public class VehicleService {
         return vehicleRepository.findAll(buildSpec(search, status), pageable);
     }
 
+    @Auditable(entityClass = Vehicle.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         vehicleRepository.delete(findById(id));
     }
 
+    @Auditable(entityClass = Vehicle.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         Vehicle vehicle = findById(id);

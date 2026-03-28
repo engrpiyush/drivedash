@@ -1,5 +1,6 @@
 package com.drivedash.parcel.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.parcel.dto.ParcelCategoryRequest;
@@ -47,6 +48,7 @@ public class ParcelCategoryService {
                 .orElseThrow(() -> DrivedashException.notFound("Parcel category not found"));
     }
 
+    @Auditable(entityClass = ParcelCategory.class, action = "CREATE")
     @Transactional
     public void create(ParcelCategoryRequest req) {
         if (categoryRepo.existsByName(req.getName())) {
@@ -60,6 +62,7 @@ public class ParcelCategoryService {
                 .build());
     }
 
+    @Auditable(entityClass = ParcelCategory.class, action = "UPDATE")
     @Transactional
     public void update(UUID id, ParcelCategoryRequest req) {
         if (categoryRepo.existsByNameAndIdNot(req.getName(), id)) {
@@ -74,12 +77,14 @@ public class ParcelCategoryService {
         categoryRepo.save(cat);
     }
 
+    @Auditable(entityClass = ParcelCategory.class, action = "STATUS_CHANGE")
     public void toggleStatus(UUID id, boolean active) {
         ParcelCategory cat = findById(id);
         cat.setActive(active);
         categoryRepo.save(cat);
     }
 
+    @Auditable(entityClass = ParcelCategory.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         categoryRepo.delete(findById(id));

@@ -1,8 +1,9 @@
 package com.drivedash.auth.config;
 
 import com.drivedash.auth.filter.JwtAuthenticationFilter;
-import com.drivedash.core.util.AppConstants;
+import com.drivedash.core.event.UserLogoutEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -19,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 
 /**
  * Two-chain security configuration:
@@ -29,6 +31,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * </ol>
  *
  * Mirrors Laravel's dual guard setup (Sanctum for API, session for web).
+ *
+ * <p>The web chain publishes a {@link UserLogoutEvent} on every logout so
+ * that the admin module's {@code SecurityAuditListener} can record the event
+ * in {@code activity_logs} without creating a circular dependency.
  */
 @Configuration
 @EnableWebSecurity
@@ -38,6 +44,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     // ── API security chain ──────────────────────────────────────────────────
 
@@ -74,6 +81,10 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
+        // Logout success handler: publish audit event then redirect
+        SimpleUrlLogoutSuccessHandler logoutSuccessHandler = new SimpleUrlLogoutSuccessHandler();
+        logoutSuccessHandler.setDefaultTargetUrl("/auth/login?logout=true");
+
         http
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(
@@ -95,7 +106,11 @@ public class SecurityConfig {
                     .permitAll())
             .logout(logout -> logout
                     .logoutUrl("/auth/logout")
-                    .logoutSuccessUrl("/auth/login?logout=true")
+                    // Publish a UserLogoutEvent before redirecting so the admin module
+                    // can record the session event without a circular dependency
+                    .addLogoutHandler((request, response, authentication) ->
+                            eventPublisher.publishEvent(new UserLogoutEvent(this, authentication)))
+                    .logoutSuccessHandler(logoutSuccessHandler)
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
                     .permitAll())

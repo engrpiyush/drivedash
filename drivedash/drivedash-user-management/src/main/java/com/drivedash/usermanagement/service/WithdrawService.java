@@ -1,5 +1,6 @@
 package com.drivedash.usermanagement.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.usermanagement.dto.WithdrawMethodRequest;
 import com.drivedash.usermanagement.dto.WithdrawRequestAction;
@@ -44,6 +45,7 @@ public class WithdrawService {
                 .orElseThrow(() -> DrivedashException.notFound("Withdraw method not found"));
     }
 
+    @Auditable(entityClass = WithdrawMethod.class, action = "CREATE")
     @Transactional
     public WithdrawMethod createMethod(WithdrawMethodRequest req) {
         if (methodRepository.existsByMethodName(req.getMethodName())) {
@@ -59,6 +61,7 @@ public class WithdrawService {
                 .build());
     }
 
+    @Auditable(entityClass = WithdrawMethod.class, action = "UPDATE")
     @Transactional
     public WithdrawMethod updateMethod(Long id, WithdrawMethodRequest req) {
         WithdrawMethod method = findMethodById(id);
@@ -73,11 +76,13 @@ public class WithdrawService {
         return methodRepository.save(method);
     }
 
+    @Auditable(entityClass = WithdrawMethod.class, action = "DELETE")
     @Transactional
     public void deleteMethod(Long id) {
         methodRepository.delete(findMethodById(id));
     }
 
+    @Auditable(entityClass = WithdrawMethod.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleMethodStatus(Long id, boolean active) {
         WithdrawMethod method = findMethodById(id);
@@ -101,6 +106,7 @@ public class WithdrawService {
                 .orElseThrow(() -> DrivedashException.notFound("Withdraw request not found"));
     }
 
+    @Auditable(entityClass = WithdrawRequest.class, action = "UPDATE")
     @Transactional
     public void processRequest(Long id, WithdrawRequestAction action) {
         WithdrawRequest req = findRequestById(id);

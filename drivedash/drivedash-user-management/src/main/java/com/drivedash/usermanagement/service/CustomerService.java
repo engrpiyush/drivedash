@@ -3,6 +3,7 @@ package com.drivedash.usermanagement.service;
 import com.drivedash.auth.entity.User;
 import com.drivedash.auth.entity.UserType;
 import com.drivedash.auth.repository.UserRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.usermanagement.dto.CustomerRequest;
 import com.drivedash.usermanagement.repository.UserAccountRepository;
@@ -40,6 +41,7 @@ public class CustomerService {
                 .orElseThrow(() -> DrivedashException.notFound("Customer not found"));
     }
 
+    @Auditable(entityClass = User.class, action = "CREATE")
     @Transactional
     public User create(CustomerRequest req) {
         if (StringUtils.hasText(req.getEmail()) && userRepository.existsByEmail(req.getEmail())) {
@@ -65,6 +67,7 @@ public class CustomerService {
         return user;
     }
 
+    @Auditable(entityClass = User.class, action = "UPDATE")
     @Transactional
     public User update(UUID id, CustomerRequest req) {
         User user = findById(id);
@@ -86,12 +89,14 @@ public class CustomerService {
         return userRepository.save(user);
     }
 
+    @Auditable(entityClass = User.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         User user = findById(id);
         userRepository.delete(user);
     }
 
+    @Auditable(entityClass = User.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         User user = findById(id);

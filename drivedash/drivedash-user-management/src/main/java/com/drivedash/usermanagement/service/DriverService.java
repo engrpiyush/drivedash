@@ -3,6 +3,7 @@ package com.drivedash.usermanagement.service;
 import com.drivedash.auth.entity.User;
 import com.drivedash.auth.entity.UserType;
 import com.drivedash.auth.repository.UserRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.usermanagement.dto.DriverRequest;
@@ -46,6 +47,7 @@ public class DriverService {
                 .orElseThrow(() -> DrivedashException.notFound("Driver not found"));
     }
 
+    @Auditable(entityClass = User.class, action = "CREATE")
     @Transactional
     public User create(DriverRequest req) {
         if (userRepository.existsByPhone(req.getPhone())) {
@@ -78,6 +80,7 @@ public class DriverService {
         return user;
     }
 
+    @Auditable(entityClass = User.class, action = "UPDATE")
     @Transactional
     public User update(UUID id, DriverRequest req) {
         User user = findById(id);
@@ -104,12 +107,14 @@ public class DriverService {
         return userRepository.save(user);
     }
 
+    @Auditable(entityClass = User.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         User user = findById(id);
         userRepository.delete(user);
     }
 
+    @Auditable(entityClass = User.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         User user = findById(id);
@@ -117,6 +122,7 @@ public class DriverService {
         userRepository.save(user);
     }
 
+    @Auditable(entityClass = User.class, action = "APPROVE")
     @Transactional
     public void approve(UUID id) {
         User user = findById(id);

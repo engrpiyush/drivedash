@@ -1,5 +1,6 @@
 package com.drivedash.vehicle.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.vehicle.dto.VehicleCategoryRequest;
@@ -24,6 +25,7 @@ public class VehicleCategoryService {
     private final VehicleCategoryRepository categoryRepository;
     private final FileStorageService fileStorageService;
 
+    @Auditable(entityClass = VehicleCategory.class, action = "CREATE")
     public VehicleCategory create(VehicleCategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
             throw DrivedashException.conflict("Category name already exists");
@@ -39,6 +41,7 @@ public class VehicleCategoryService {
         return categoryRepository.save(cat);
     }
 
+    @Auditable(entityClass = VehicleCategory.class, action = "UPDATE")
     public VehicleCategory update(UUID id, VehicleCategoryRequest request) {
         VehicleCategory cat = findById(id);
         if (categoryRepository.existsByNameAndIdNot(request.getName(), id)) {
@@ -70,11 +73,13 @@ public class VehicleCategoryService {
         return categoryRepository.findAllByActiveTrue();
     }
 
+    @Auditable(entityClass = VehicleCategory.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         categoryRepository.delete(findById(id));
     }
 
+    @Auditable(entityClass = VehicleCategory.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         VehicleCategory cat = findById(id);

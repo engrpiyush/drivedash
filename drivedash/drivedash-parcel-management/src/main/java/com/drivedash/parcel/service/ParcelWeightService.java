@@ -1,5 +1,6 @@
 package com.drivedash.parcel.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.parcel.dto.ParcelWeightRequest;
 import com.drivedash.parcel.entity.ParcelWeight;
@@ -42,6 +43,7 @@ public class ParcelWeightService {
                 .orElseThrow(() -> DrivedashException.notFound("Parcel weight not found"));
     }
 
+    @Auditable(entityClass = ParcelWeight.class, action = "CREATE")
     @Transactional
     public void create(ParcelWeightRequest req) {
         weightRepo.save(ParcelWeight.builder()
@@ -50,6 +52,7 @@ public class ParcelWeightService {
                 .build());
     }
 
+    @Auditable(entityClass = ParcelWeight.class, action = "UPDATE")
     @Transactional
     public void update(UUID id, ParcelWeightRequest req) {
         ParcelWeight w = findById(id);
@@ -58,12 +61,14 @@ public class ParcelWeightService {
         weightRepo.save(w);
     }
 
+    @Auditable(entityClass = ParcelWeight.class, action = "STATUS_CHANGE")
     public void toggleStatus(UUID id, boolean active) {
         ParcelWeight w = findById(id);
         w.setActive(active);
         weightRepo.save(w);
     }
 
+    @Auditable(entityClass = ParcelWeight.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         weightRepo.delete(findById(id));

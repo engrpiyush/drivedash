@@ -1,5 +1,6 @@
 package com.drivedash.promotion.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.promotion.dto.BannerSetupRequest;
@@ -49,6 +50,7 @@ public class BannerSetupService {
                 .orElseThrow(() -> DrivedashException.notFound("Banner not found"));
     }
 
+    @Auditable(entityClass = BannerSetup.class, action = "CREATE")
     @Transactional
     public void create(BannerSetupRequest req) {
         String image = null;
@@ -69,6 +71,7 @@ public class BannerSetupService {
                 .build());
     }
 
+    @Auditable(entityClass = BannerSetup.class, action = "UPDATE")
     @Transactional
     public void update(UUID id, BannerSetupRequest req) {
         BannerSetup banner = findById(id);
@@ -87,12 +90,14 @@ public class BannerSetupService {
         bannerRepo.save(banner);
     }
 
+    @Auditable(entityClass = BannerSetup.class, action = "STATUS_CHANGE")
     public void toggleStatus(UUID id, boolean active) {
         BannerSetup banner = findById(id);
         banner.setActive(active);
         bannerRepo.save(banner);
     }
 
+    @Auditable(entityClass = BannerSetup.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         bannerRepo.delete(findById(id));

@@ -23,7 +23,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * Audit trail for all admin-visible data mutations.
+ * Audit trail for all admin-visible data mutations and session events.
  *
  * <p>Uses a Long auto-increment PK (matching Laravel's {@code $table->id()}).
  * The {@code logableId} / {@code logableType} pair forms a polymorphic reference –
@@ -32,6 +32,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  *
  * <p>{@code beforeState} and {@code afterState} store a JSON snapshot of the entity
  * state taken by {@link com.drivedash.admin.aspect.ActivityLoggingAspect}.
+ *
+ * <p>{@code logableId} and {@code editedBy} are nullable to support session-level
+ * events (LOGIN, LOGOUT) that are not tied to a specific entity record.
  */
 @Getter
 @Setter
@@ -44,7 +47,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
     name = "activity_logs",
     indexes = {
         @Index(name = "idx_al_logable", columnList = "logable_type, logable_id"),
-        @Index(name = "idx_al_edited_by", columnList = "edited_by")
+        @Index(name = "idx_al_edited_by", columnList = "edited_by"),
+        @Index(name = "idx_al_action", columnList = "action")
     }
 )
 public class ActivityLog {
@@ -54,16 +58,29 @@ public class ActivityLog {
     @Column(name = "id")
     private Long id;
 
-    /** UUID of the entity that was modified (polymorphic FK). */
-    @Column(name = "logable_id", nullable = false, columnDefinition = "CHAR(36)")
+    /**
+     * UUID of the entity that was modified (polymorphic FK).
+     * Nullable for session events (LOGIN / LOGOUT) that have no specific entity.
+     */
+    @Column(name = "logable_id", nullable = true, columnDefinition = "CHAR(36)")
     private UUID logableId;
 
-    /** Fully-qualified Java class name of the modified entity. */
+    /** Simple class name of the modified entity (e.g. {@code "User"}, {@code "Vehicle"}). */
     @Column(name = "logable_type", nullable = false, length = 191)
     private String logableType;
 
-    /** UUID of the admin/employee who made the change. */
-    @Column(name = "edited_by", nullable = false, columnDefinition = "CHAR(36)")
+    /**
+     * Human-readable action label: {@code CREATE}, {@code UPDATE}, {@code DELETE},
+     * {@code LOGIN}, {@code LOGOUT}, {@code STATUS_CHANGE}, etc.
+     */
+    @Column(name = "action", length = 30)
+    private String action;
+
+    /**
+     * UUID of the admin / employee who triggered the change.
+     * Nullable to be safe when the actor cannot be resolved (e.g. anonymous).
+     */
+    @Column(name = "edited_by", nullable = true, columnDefinition = "CHAR(36)")
     private UUID editedBy;
 
     /** JSON snapshot of the entity state before the mutation. */

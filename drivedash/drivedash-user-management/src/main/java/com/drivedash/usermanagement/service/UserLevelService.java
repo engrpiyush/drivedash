@@ -1,5 +1,6 @@
 package com.drivedash.usermanagement.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.usermanagement.dto.UserLevelRequest;
@@ -44,6 +45,7 @@ public class UserLevelService {
                 .orElseThrow(() -> DrivedashException.notFound("Level not found"));
     }
 
+    @Auditable(entityClass = UserLevel.class, action = "CREATE")
     @Transactional
     public UserLevel create(UserLevelRequest req) {
         if (levelRepository.existsByNameAndUserType(req.getName(), req.getUserType())) {
@@ -71,6 +73,7 @@ public class UserLevelService {
         return level;
     }
 
+    @Auditable(entityClass = UserLevel.class, action = "UPDATE")
     @Transactional
     public UserLevel update(UUID id, UserLevelRequest req) {
         UserLevel level = findById(id);
@@ -96,11 +99,13 @@ public class UserLevelService {
         return level;
     }
 
+    @Auditable(entityClass = UserLevel.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         levelRepository.delete(findById(id));
     }
 
+    @Auditable(entityClass = UserLevel.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         UserLevel level = findById(id);

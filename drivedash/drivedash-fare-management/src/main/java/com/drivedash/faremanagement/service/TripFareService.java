@@ -1,5 +1,6 @@
 package com.drivedash.faremanagement.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.faremanagement.dto.CategoryFareRequest;
 import com.drivedash.faremanagement.dto.TripFareSetupRequest;
@@ -55,6 +56,7 @@ public class TripFareService {
         return defaultFareRepo.existsByZoneId(zoneId);
     }
 
+    @Auditable(entityClass = ZoneWiseDefaultTripFare.class, action = "UPDATE")
     @Transactional
     public void setup(UUID zoneId, TripFareSetupRequest req) {
         // 1. Upsert zone-wide default

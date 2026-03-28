@@ -1,5 +1,6 @@
 package com.drivedash.zone.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.zone.dto.ZoneCoordinatePoint;
 import com.drivedash.zone.dto.ZoneRequest;
@@ -24,6 +25,7 @@ public class ZoneService {
 
     private final ZoneRepository zoneRepository;
 
+    @Auditable(entityClass = Zone.class, action = "CREATE")
     public Zone create(ZoneRequest request) {
         if (zoneRepository.existsByName(request.getName())) {
             throw DrivedashException.conflict("Zone name already exists");
@@ -39,6 +41,7 @@ public class ZoneService {
         return zoneRepository.save(zone);
     }
 
+    @Auditable(entityClass = Zone.class, action = "UPDATE")
     public Zone update(UUID id, ZoneRequest request) {
         Zone zone = findById(id);
         if (zoneRepository.existsByNameAndIdNot(request.getName(), id)) {
@@ -69,12 +72,14 @@ public class ZoneService {
         return zoneRepository.findAll(spec);
     }
 
+    @Auditable(entityClass = Zone.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         Zone zone = findById(id);
         zoneRepository.delete(zone); // triggers @SQLDelete → sets deleted_at
     }
 
+    @Auditable(entityClass = Zone.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         Zone zone = findById(id);

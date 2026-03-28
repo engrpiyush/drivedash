@@ -1,5 +1,6 @@
 package com.drivedash.vehicle.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import com.drivedash.vehicle.dto.VehicleBrandRequest;
@@ -24,6 +25,7 @@ public class VehicleBrandService {
     private final VehicleBrandRepository brandRepository;
     private final FileStorageService fileStorageService;
 
+    @Auditable(entityClass = VehicleBrand.class, action = "CREATE")
     public VehicleBrand create(VehicleBrandRequest request) {
         if (brandRepository.existsByName(request.getName())) {
             throw DrivedashException.conflict("Brand name already exists");
@@ -38,6 +40,7 @@ public class VehicleBrandService {
         return brandRepository.save(brand);
     }
 
+    @Auditable(entityClass = VehicleBrand.class, action = "UPDATE")
     public VehicleBrand update(UUID id, VehicleBrandRequest request) {
         VehicleBrand brand = findById(id);
         if (brandRepository.existsByNameAndIdNot(request.getName(), id)) {
@@ -68,11 +71,13 @@ public class VehicleBrandService {
         return brandRepository.findAllByActiveTrue();
     }
 
+    @Auditable(entityClass = VehicleBrand.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         brandRepository.delete(findById(id));
     }
 
+    @Auditable(entityClass = VehicleBrand.class, action = "STATUS_CHANGE")
     @Transactional
     public void toggleStatus(UUID id, boolean active) {
         VehicleBrand brand = findById(id);

@@ -5,6 +5,7 @@ import com.drivedash.business.dto.CancellationReasonRequest;
 import com.drivedash.business.entity.CancellationReason;
 import com.drivedash.business.entity.CancellationUserType;
 import com.drivedash.business.repository.CancellationReasonRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class CancellationReasonService {
 
     private final CancellationReasonRepository repository;
 
+    @Auditable(entityClass = CancellationReason.class, action = "CREATE")
     @Transactional
     public CancellationReasonDto create(CancellationReasonRequest request) {
         CancellationReason reason = repository.save(CancellationReason.builder()
@@ -34,6 +36,7 @@ public class CancellationReasonService {
         return toDto(reason);
     }
 
+    @Auditable(entityClass = CancellationReason.class, action = "UPDATE")
     @Transactional
     public CancellationReasonDto update(UUID id, CancellationReasonRequest request) {
         CancellationReason reason = findOrThrow(id);
@@ -44,6 +47,7 @@ public class CancellationReasonService {
         return toDto(repository.save(reason));
     }
 
+    @Auditable(entityClass = CancellationReason.class, action = "STATUS_CHANGE")
     @Transactional
     public void updateStatus(UUID id, boolean active) {
         CancellationReason reason = findOrThrow(id);
@@ -51,6 +55,7 @@ public class CancellationReasonService {
         repository.save(reason);
     }
 
+    @Auditable(entityClass = CancellationReason.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         CancellationReason reason = findOrThrow(id);

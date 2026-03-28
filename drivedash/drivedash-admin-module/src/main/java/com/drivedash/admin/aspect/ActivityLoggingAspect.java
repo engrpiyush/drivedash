@@ -1,9 +1,11 @@
 package com.drivedash.admin.aspect;
 
-import com.drivedash.admin.annotation.Auditable;
 import com.drivedash.admin.entity.ActivityLog;
 import com.drivedash.admin.repository.ActivityLogRepository;
+import com.drivedash.auth.entity.User;
+import com.drivedash.core.annotation.Auditable;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,17 +22,17 @@ import org.springframework.stereotype.Component;
  * AOP aspect that auto-records an {@link ActivityLog} entry whenever a service
  * method annotated with {@link Auditable} completes successfully.
  *
- * <p>Replaces the manual {@code ActivityLog::create([...])} calls scattered
- * across every PHP service that mutates data.
+ * <p>Entity ID resolution strategy (in priority order):
+ * <ol>
+ *   <li>First {@link UUID} argument → used for UPDATE / DELETE / STATUS_CHANGE</li>
+ *   <li>Return value's {@code getId()} method → used for CREATE operations
+ *       where the ID is assigned by the database after {@code save()}</li>
+ *   <li>{@code null} → logged without a logable_id (acceptable for batch ops)</li>
+ * </ol>
  *
- * <p>Snapshot strategy:
- * <ul>
- *   <li>The first argument of the annotated method that is a {@link UUID} is
- *       treated as the entity's ID ({@code logable_id}).</li>
- *   <li>{@code before} is set to {@code null} on CREATE actions.</li>
- *   <li>{@code after} is the serialised return value of the method (must be
- *       a DTO or entity; {@code void} methods skip the after snapshot).</li>
- * </ul>
+ * <p>Actor ID resolution: casts {@code auth.getPrincipal()} to {@link User}
+ * and reads {@code user.getId()}.  Falls back gracefully to {@code null} if the
+ * principal is not a {@link User} (e.g. anonymous, JWT-only paths).
  */
 @Slf4j
 @Aspect
@@ -45,24 +48,29 @@ public class ActivityLoggingAspect {
         Object result = joinPoint.proceed();
 
         try {
-            UUID entityId   = resolveEntityId(joinPoint.getArgs());
-            UUID actorId    = resolveActorId();
+            // For CREATE the entity UUID is in the return value; for UPDATE/DELETE it's the first arg
+            UUID entityId = resolveEntityId(joinPoint.getArgs(), result, auditable.action());
+            UUID actorId  = resolveActorId();
             String userType = resolveUserType();
 
             Map<String, Object> afterSnapshot = toMap(result);
 
-            ActivityLog log = ActivityLog.builder()
+            ActivityLog entry = ActivityLog.builder()
                     .logableId(entityId)
                     .logableType(auditable.entityClass().getSimpleName())
+                    .action(auditable.action())
                     .editedBy(actorId)
                     .afterState(afterSnapshot)
                     .userType(userType)
                     .build();
 
-            activityLogRepository.save(log);
+            activityLogRepository.save(entry);
         } catch (Exception ex) {
-            // Logging failure must never break the primary operation
-            log.warn("ActivityLoggingAspect failed to record log: {}", ex.getMessage());
+            // Logging failure must NEVER break the primary operation
+            log.warn("ActivityLoggingAspect: failed to persist log entry [{}#{}]: {}",
+                    auditable.entityClass().getSimpleName(),
+                    auditable.action(),
+                    ex.getMessage());
         }
 
         return result;
@@ -70,25 +78,51 @@ public class ActivityLoggingAspect {
 
     // ── Helpers ─────────────────────────────────────────────────────────────
 
-    private UUID resolveEntityId(Object[] args) {
+    /**
+     * For UPDATE / DELETE / STATUS_CHANGE: the first {@link UUID} in the argument
+     * list is the entity ID passed by the caller.
+     *
+     * For CREATE: the entity does not have an ID until after {@code save()}, so we
+     * extract it from the return value via reflection ({@code result.getId()}).
+     */
+    private UUID resolveEntityId(Object[] args, Object result, String action) {
+        // Try arguments first (covers UPDATE / DELETE where UUID id is the first param)
         for (Object arg : args) {
             if (arg instanceof UUID uuid) {
                 return uuid;
             }
         }
+
+        // For CREATE-style operations, extract the ID from the saved entity return value
+        if (result != null) {
+            try {
+                Method getId = result.getClass().getMethod("getId");
+                Object idVal = getId.invoke(result);
+                if (idVal instanceof UUID uuid) {
+                    return uuid;
+                }
+            } catch (Exception ignored) {
+                // Return value has no getId() – that's fine (e.g. void or primitive)
+            }
+        }
+
         return null;
     }
 
+    /**
+     * Extracts the actor's UUID by casting the Security principal to {@link User}.
+     * Falls back to {@code null} for anonymous or non-User principals.
+     */
     private UUID resolveActorId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return null;
         }
-        try {
-            return UUID.fromString(auth.getName());
-        } catch (IllegalArgumentException ex) {
-            return null;
+        Object principal = auth.getPrincipal();
+        if (principal instanceof User user) {
+            return user.getId();
         }
+        return null;
     }
 
     private String resolveUserType() {

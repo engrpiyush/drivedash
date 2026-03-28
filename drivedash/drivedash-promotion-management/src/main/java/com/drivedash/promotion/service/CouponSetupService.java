@@ -1,5 +1,6 @@
 package com.drivedash.promotion.service;
 
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.promotion.dto.CouponSetupRequest;
 import com.drivedash.promotion.entity.CouponSetup;
@@ -62,6 +63,7 @@ public class CouponSetupService {
         return userLevelRepo.findAll(Sort.by("sequence"));
     }
 
+    @Auditable(entityClass = CouponSetup.class, action = "CREATE")
     @Transactional
     public void create(CouponSetupRequest req) {
         if (couponRepo.existsByCouponCode(req.getCouponCode())) {
@@ -91,6 +93,7 @@ public class CouponSetupService {
                 .build());
     }
 
+    @Auditable(entityClass = CouponSetup.class, action = "UPDATE")
     @Transactional
     public void update(UUID id, CouponSetupRequest req) {
         CouponSetup coupon = findById(id);
@@ -114,12 +117,14 @@ public class CouponSetupService {
         couponRepo.save(coupon);
     }
 
+    @Auditable(entityClass = CouponSetup.class, action = "STATUS_CHANGE")
     public void toggleStatus(UUID id, boolean active) {
         CouponSetup coupon = findById(id);
         coupon.setActive(active);
         couponRepo.save(coupon);
     }
 
+    @Auditable(entityClass = CouponSetup.class, action = "DELETE")
     @Transactional
     public void delete(UUID id) {
         couponRepo.delete(findById(id));

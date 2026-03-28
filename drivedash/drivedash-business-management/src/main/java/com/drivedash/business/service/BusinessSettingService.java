@@ -3,6 +3,7 @@ package com.drivedash.business.service;
 import com.drivedash.business.entity.BusinessSetting;
 import com.drivedash.business.entity.SettingsType;
 import com.drivedash.business.repository.BusinessSettingRepository;
+import com.drivedash.core.annotation.Auditable;
 import com.drivedash.core.exception.DrivedashException;
 import com.drivedash.core.util.FileStorageService;
 import java.util.List;
@@ -46,6 +47,7 @@ public class BusinessSettingService {
      * Upserts a structured map value for the given settings type.
      * This is the primary write path used by all sub-services.
      */
+    @Auditable(entityClass = BusinessSetting.class, action = "UPDATE")
     @Transactional
     public BusinessSetting upsertMap(String keyName, SettingsType settingsType,
                                       Map<String, Object> value) {
