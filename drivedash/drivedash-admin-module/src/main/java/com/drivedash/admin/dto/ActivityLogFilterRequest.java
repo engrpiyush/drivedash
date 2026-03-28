@@ -1,6 +1,5 @@
 package com.drivedash.admin.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +13,6 @@ import lombok.Setter;
 @Setter
 public class ActivityLogFilterRequest {
 
-    @NotBlank(message = "logable_type is required")
     private String logableType;
 
     private UUID logableId;

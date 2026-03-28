@@ -27,4 +27,11 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long>,
 
     Page<ActivityLog> findAllByLogableTypeAndLogableIdAndUserType(String logableType,
             UUID logableId, String userType, Pageable pageable);
+
+    Page<ActivityLog> findAllByLogableId(UUID logableId, Pageable pageable);
+
+    Page<ActivityLog> findAllByUserType(String userType, Pageable pageable);
+
+    Page<ActivityLog> findAllByLogableIdAndUserType(UUID logableId, String userType,
+            Pageable pageable);
 }

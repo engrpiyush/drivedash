@@ -26,11 +26,6 @@ public class ActivityLogController {
 
     @GetMapping
     public String log(@ModelAttribute ActivityLogFilterRequest filter, Model model) {
-        // logable_type is mandatory in the filter; default to "User" if absent
-        if (filter.getLogableType() == null || filter.getLogableType().isBlank()) {
-            filter.setLogableType("User");
-        }
-
         Page<ActivityLog> page = activityLogService.findLogs(filter);
         model.addAttribute("logs", page);
         model.addAttribute("filter", filter);

@@ -1,118 +1,111 @@
 package com.drivedash.admin.aspect;
 
-import com.drivedash.admin.annotation.Auditable;
-import com.drivedash.admin.entity.ActivityLog;
-import com.drivedash.admin.repository.ActivityLogRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.drivedash.admin.service.ActivityLogRecorder;
+import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * AOP aspect that auto-records an {@link ActivityLog} entry whenever a service
- * method annotated with {@link Auditable} completes successfully.
- *
- * <p>Replaces the manual {@code ActivityLog::create([...])} calls scattered
- * across every PHP service that mutates data.
- *
- * <p>Snapshot strategy:
- * <ul>
- *   <li>The first argument of the annotated method that is a {@link UUID} is
- *       treated as the entity's ID ({@code logable_id}).</li>
- *   <li>{@code before} is set to {@code null} on CREATE actions.</li>
- *   <li>{@code after} is the serialised return value of the method (must be
- *       a DTO or entity; {@code void} methods skip the after snapshot).</li>
- * </ul>
+ * Captures mutation activity for controller endpoints (POST/PUT/PATCH/DELETE).
  */
-@Slf4j
 @Aspect
 @Component
 @RequiredArgsConstructor
 public class ActivityLoggingAspect {
 
-    private final ActivityLogRepository activityLogRepository;
-    private final ObjectMapper objectMapper;
+    private final ActivityLogRecorder recorder;
 
-    @Around("@annotation(auditable)")
-    public Object logActivity(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {
+    @Around("(@within(org.springframework.stereotype.Controller) || @within(org.springframework.web.bind.annotation.RestController))"
+            + " && ("
+            + "@annotation(org.springframework.web.bind.annotation.PostMapping)"
+            + " || @annotation(org.springframework.web.bind.annotation.PutMapping)"
+            + " || @annotation(org.springframework.web.bind.annotation.PatchMapping)"
+            + " || @annotation(org.springframework.web.bind.annotation.DeleteMapping)"
+            + ")")
+    public Object logMutation(ProceedingJoinPoint joinPoint) throws Throwable {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
+
+        Map<String, Object> before = new LinkedHashMap<>();
+        before.put("method", request != null ? request.getMethod() : null);
+        before.put("path", request != null ? request.getRequestURI() : null);
+        before.put("operation", joinPoint.getSignature().toShortString());
+
         Object result = joinPoint.proceed();
 
-        try {
-            UUID entityId   = resolveEntityId(joinPoint.getArgs());
-            UUID actorId    = resolveActorId();
-            String userType = resolveUserType();
+        Map<String, Object> after = new LinkedHashMap<>();
+        after.put("method", request != null ? request.getMethod() : null);
+        after.put("path", request != null ? request.getRequestURI() : null);
+        after.put("result", summarize(result));
 
-            Map<String, Object> afterSnapshot = toMap(result);
-
-            ActivityLog log = ActivityLog.builder()
-                    .logableId(entityId)
-                    .logableType(auditable.entityClass().getSimpleName())
-                    .editedBy(actorId)
-                    .afterState(afterSnapshot)
-                    .userType(userType)
-                    .build();
-
-            activityLogRepository.save(log);
-        } catch (Exception ex) {
-            // Logging failure must never break the primary operation
-            log.warn("ActivityLoggingAspect failed to record log: {}", ex.getMessage());
-        }
-
+        UUID entityId = resolveEntityId(joinPoint.getArgs(), result);
+        String logableType = resolveLogableType(joinPoint, request);
+        recorder.recordForCurrentUser(logableType, entityId, before, after);
         return result;
     }
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
-
-    private UUID resolveEntityId(Object[] args) {
+    private UUID resolveEntityId(Object[] args, Object result) {
         for (Object arg : args) {
             if (arg instanceof UUID uuid) {
                 return uuid;
             }
         }
+        UUID fromResult = tryResolveFromObject(result);
+        if (fromResult != null) {
+            return fromResult;
+        }
+        if (result instanceof org.springframework.http.ResponseEntity<?> response) {
+            return tryResolveFromObject(response.getBody());
+        }
         return null;
     }
 
-    private UUID resolveActorId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+    private UUID tryResolveFromObject(Object candidate) {
+        if (candidate == null) {
             return null;
         }
         try {
-            return UUID.fromString(auth.getName());
-        } catch (IllegalArgumentException ex) {
-            return null;
+            Method getId = candidate.getClass().getMethod("getId");
+            Object id = getId.invoke(candidate);
+            if (id instanceof UUID uuid) {
+                return uuid;
+            }
+            if (id instanceof String str) {
+                return UUID.fromString(str);
+            }
+        } catch (Exception ignored) {
+            // best-effort only
         }
+        return null;
     }
 
-    private String resolveUserType() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null) {
-            return null;
+    private String resolveLogableType(ProceedingJoinPoint joinPoint, HttpServletRequest request) {
+        String controllerName = joinPoint.getTarget().getClass().getSimpleName();
+        if (controllerName.endsWith("Controller")) {
+            controllerName = controllerName.substring(0, controllerName.length() - "Controller".length());
         }
-        return auth.getAuthorities().stream()
-                .map(a -> a.getAuthority())
-                .filter(a -> a.startsWith("ROLE_"))
-                .findFirst()
-                .map(a -> a.replace("ROLE_", "").toLowerCase())
-                .orElse(null);
+        if (controllerName.isBlank() && request != null) {
+            return request.getRequestURI();
+        }
+        return controllerName;
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> toMap(Object obj) {
-        if (obj == null) {
+    private Object summarize(Object value) {
+        if (value == null) {
             return null;
         }
-        try {
-            return objectMapper.convertValue(obj, Map.class);
-        } catch (Exception ex) {
-            return Map.of("value", obj.toString());
+        if (value instanceof CharSequence || value instanceof Number || value instanceof Boolean) {
+            return value;
         }
+        return value.getClass().getSimpleName();
     }
 }

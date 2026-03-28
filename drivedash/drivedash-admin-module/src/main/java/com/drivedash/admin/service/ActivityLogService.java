@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 /**
  * Query service for the activity log.
@@ -30,18 +31,39 @@ public class ActivityLogService {
                 filter.getSize(),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        String type     = filter.getLogableType();
-        UUID   id       = filter.getLogableId();
+        String type = filter.getLogableType();
+        UUID id = filter.getLogableId();
         String userType = filter.getUserType();
 
-        if (id != null && userType != null) {
+        if (StringUtils.hasText(type)) {
+            return findWithType(type, id, userType, pageable);
+        }
+        if (id != null && StringUtils.hasText(userType)) {
+            return repository.findAllByLogableIdAndUserType(id, userType, pageable);
+        }
+        if (id != null) {
+            return repository.findAllByLogableId(id, pageable);
+        }
+        if (StringUtils.hasText(userType)) {
+            return repository.findAllByUserType(userType, pageable);
+        }
+        return repository.findAll(pageable);
+    }
+
+    private Page<ActivityLog> findWithType(
+            String type,
+            UUID id,
+            String userType,
+            PageRequest pageable
+    ) {
+        if (id != null && StringUtils.hasText(userType)) {
             return repository.findAllByLogableTypeAndLogableIdAndUserType(
                     type, id, userType, pageable);
         }
         if (id != null) {
             return repository.findAllByLogableTypeAndLogableId(type, id, pageable);
         }
-        if (userType != null) {
+        if (StringUtils.hasText(userType)) {
             return repository.findAllByLogableTypeAndUserType(type, userType, pageable);
         }
         return repository.findAllByLogableType(type, pageable);
